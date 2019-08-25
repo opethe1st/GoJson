@@ -1,9 +1,8 @@
 package json
 
 import (
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 type TestCase struct {
@@ -102,7 +101,7 @@ func TestLoadSequence(t *testing.T) {
 	}
 	for _, testcase := range testCases {
 		_, output := loadSequence(testcase.input, 0)
-		assert.Equal(output, testcase.expectedOutput, "These should be equal")
+		assert.Equal(output, testcase.expectedOutput, "Expected loadSequence(%v) to be %v but got %v", testcase.input, testcase.expectedOutput, output)
 	}
 }
 
@@ -128,7 +127,7 @@ func TestLoadMapping(t *testing.T) {
 	}
 	for _, testcase := range testCases {
 		_, output := loadMapping(testcase.input, 0)
-		assert.Equal(testcase.expectedOutput, output, "These should be equal")
+		assert.Equal(output, testcase.expectedOutput, "Expected loadMapping(%v) to be %v but got %v", testcase.input, testcase.expectedOutput, output)
 	}
 }
 

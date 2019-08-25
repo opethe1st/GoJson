@@ -1,8 +1,9 @@
 /*
-Package json implements the a subset of the json specification defined at json.org.
-It is a very simple data format that supports serializing primitive types like string and numbers. and composite ones like
-sequences and mappings. You can check json.org for more details. This package doesn't implement the entire specification. The only types it supports is
-string (strings without escaped characters) , sequences (aka arrays) and mapping (aka dictionaries)
+Package json implements a subset of the json specification defined at https://www.json.org.
+Json is a very simple data format that supports serializing primitive types like string and numbers as well as composite ones like
+sequences and mappings. You can check https://www.json.org for more details.
+This package doesn't implement the entire specification. The only types it supports are string (strings without escaped characters),
+sequences (aka arrays) and mapping (aka dictionaries)
 */
 package json
 
@@ -11,7 +12,7 @@ import (
 	"unicode"
 )
 
-// Load is used load a objects from a string
+// Load is used load an object from a string
 func Load(s string) interface{} {
 	_, value := load(s, 0)
 	return value
@@ -35,7 +36,6 @@ func load(s string, current int) (int, interface{}) {
 	}
 }
 
-
 // strings
 
 func isString(s string, current int) bool {
@@ -43,16 +43,15 @@ func isString(s string, current int) bool {
 }
 
 func loadString(s string, current int) (int, interface{}) {
-	start := current
-	current++
+	// actually should probably raise an error if '"' isn't consumed
+	start := consume(s, current, '"')
+	current = start
 	for current < len(s) && s[current] != '"' {
 		current++
 	}
-	// start+1 so we don't include the '""
-	// and current + 1 since the next not visited character is at current + 1
-	return current + 1, s[start+1 : current]
+	// and current + 1 since the next not visited character in s is at current + 1
+	return current + 1, s[start:current]
 }
-
 
 // sequences
 
@@ -76,7 +75,6 @@ func loadSequence(s string, current int) (int, []interface{}) {
 	}
 	return current + 1, seq
 }
-
 
 // mappings
 
@@ -102,7 +100,6 @@ func loadMapping(s string, current int) (int, map[string]interface{}) {
 	}
 	return current + 1, mapping
 }
-
 
 // utils - this could be in a separate file
 
