@@ -9,6 +9,7 @@ package json
 
 import (
 	"fmt"
+	"strconv"
 	"unicode"
 )
 
@@ -29,6 +30,8 @@ func load(iter *iterator) interface{} {
 		return loadKeyword(iter, "true", true)
 	case iter.getCurrent() == 'f':
 		return loadKeyword(iter, "false", false)
+	case isNumber(iter):
+		return loadNumber(iter)
 	case iter.getCurrent() == '"':
 		return loadString(iter)
 	case iter.getCurrent() == '[':
@@ -54,7 +57,26 @@ func loadKeyword(iter *iterator, keyword string, value interface{}) interface{} 
 	return value
 }
 
-func loadString(iter *iterator) interface{} {
+func isNumber(iter *iterator) bool {
+	switch iter.getCurrent() {
+	case '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		return true
+	}
+	return false
+}
+
+func loadNumber(iter *iterator) interface{} {
+	num := 0
+	for !iter.isEnd() && unicode.IsDigit(rune(iter.getCurrent())) {
+		num *= 10
+		val, _ := strconv.ParseInt(string(iter.getCurrent()), 10, 64)
+		num += int(val)
+		iter.advance()
+	}
+	return num
+}
+
+func loadString(iter *iterator) string {
 	consume(iter, '"')
 	s := make([]rune, 0)
 	mapping := map[rune]rune{
@@ -101,6 +123,7 @@ func loadString(iter *iterator) interface{} {
 				//need to handle the default case and handle u and hex digits
 			case 'u':
 				var ans rune
+				// I should make sure these are valid hex digits btw, but will leave it for error reporting
 				for i := 0; i < 4; i++ {
 					iter.advance() // move past the 'u'
 					fmt.Println(i, ans, string(iter.getCurrent()))

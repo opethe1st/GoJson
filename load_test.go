@@ -29,6 +29,7 @@ func TestLoad(t *testing.T) {
 				"k5": true,
 				"k6": false,
 				"k	6": null,
+				"k7": 123456
 			}`, map[string]interface{}{
 				"k1": "v1",
 				"k2": []interface{}{"v2"},
@@ -40,6 +41,7 @@ func TestLoad(t *testing.T) {
 				"k5":   true,
 				"k6":   false,
 				"k\t6": nil,
+				"k7": 123456,
 			},
 		},
 	}
@@ -101,6 +103,20 @@ func TestLoadString(t *testing.T) {
 			t.Errorf("Expected loadString(%v) to be %v but got %v", iter, testcase.expectedOutput, iter.offset)
 		}
 	}
+}
+
+func TestLoadNumber(t *testing.T) {
+	testCases := []TestCase{
+		{`123`, 123},
+	}
+	for _, testcase := range testCases {
+		iter := &iterator{s: testcase.input}
+		if output := loadNumber(iter); output != testcase.expectedOutput {
+			t.Errorf("Expected loadNumber(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
+		}
+
+	}
+
 }
 
 func TestLoadSequence(t *testing.T) {
