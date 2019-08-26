@@ -57,7 +57,7 @@ func loadKeyword(iter *iterator, keyword string, value interface{}) interface{} 
 
 func isNumber(iter *iterator) bool {
 	switch iter.getCurrent() {
-	case '1', '2', '3', '4', '5', '6', '7', '8', '9', '-':
+	case '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '0':
 		return true
 	}
 	return false
@@ -65,19 +65,31 @@ func isNumber(iter *iterator) bool {
 
 func loadNumber(iter *iterator) interface{} {
 	//negative numbers
-	sign := 1
+	sign := 1.0
 	if iter.getCurrent() == '-'{
-		sign = -1
+		sign = -1.0
 		iter.advance()
 	}
-	num := 0
+	num := 0.0
 	for !iter.isEnd() && unicode.IsDigit(rune(iter.getCurrent())) {
 		num *= 10
 		val, _ := strconv.ParseInt(string(iter.getCurrent()), 10, 64)
-		num += int(val)
+		num += float64(val)
 		iter.advance()
 	}
-	return num*sign
+
+	// decimal
+	consume(iter, '.')
+	frac := 0.0
+	power := 0.1
+	for !iter.isEnd() && unicode.IsDigit(rune(iter.getCurrent())) {
+		val, _ := strconv.ParseInt(string(iter.getCurrent()), 10, 64)
+		frac += power*float64(val)
+		power *= 0.1
+		iter.advance()
+	}
+
+	return (num+frac)*sign
 }
 
 func loadString(iter *iterator) string {
@@ -197,7 +209,7 @@ func consumeWhiteSpace(iter *iterator) {
 
 func consume(iter *iterator, char byte) {
 	// actually should probably raise an error if char isn't consumed
-	if iter.getCurrent() == char {
+	if !iter.isEnd() && iter.getCurrent() == char {
 		iter.advance()
 	}
 }

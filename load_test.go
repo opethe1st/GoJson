@@ -107,8 +107,9 @@ func TestLoadString(t *testing.T) {
 
 func TestLoadNumber(t *testing.T) {
 	testCases := []TestCase{
-		{`123`, 123},
-		{`-123`, -123},
+		{`123`, 123.0},
+		{`-123`, -123.0},
+		{`-123.123`, -123.123},
 	}
 	for _, testcase := range testCases {
 		iter := &iterator{s: testcase.input}
