@@ -56,13 +56,69 @@ func loadKeyword(iter *iterator, keyword string, value interface{}) interface{} 
 
 func loadString(iter *iterator) interface{} {
 	consume(iter, '"')
-	start := iter.offset
+	s := make([]rune, 0)
+	mapping := map[rune]rune{
+		'"':  '"',
+		'\\': '\\',
+		'b':  '\b',
+		'f':  '\f',
+		'n':  '\n',
+		'r':  '\r',
+		't':  '\t',
+	}
+	// TODO(better as a function?)
+	convertToDecimal := map[rune]rune{
+		'0': 0,
+		'1': 1,
+		'2': 2,
+		'3': 3,
+		'4': 4,
+		'5': 5,
+		'6': 6,
+		'7': 7,
+		'8': 8,
+		'9': 9,
+		'a': 10,
+		'A': 10,
+		'b': 11,
+		'B': 11,
+		'c': 12,
+		'C': 12,
+		'd': 13,
+		'D': 13,
+		'e': 14,
+		'E': 14,
+		'f': 15,
+		'F': 15,
+	}
 	for !iter.isEnd() && (iter.getCurrent() != '"') {
+		if iter.getCurrent() == '\\' {
+			iter.advance()
+			current := iter.getCurrent()
+			switch current {
+			case '"', '\\', 'b', 'f', 'n', 'r', 't':
+				s = append(s, mapping[rune(current)])
+				//need to handle the default case and handle u and hex digits
+			case 'u':
+				var ans rune
+				for i := 0; i < 4; i++ {
+					iter.advance() // move past the 'u'
+					fmt.Println(i, ans, string(iter.getCurrent()))
+					ans = ans * 16
+					ans += convertToDecimal[rune(iter.getCurrent())]
+				}
+				s = append(s, ans)
+			default:
+				s = append(s, rune('\\'))
+				s = append(s, rune(iter.getCurrent()))
+			}
+		} else {
+			s = append(s, rune(iter.getCurrent()))
+		}
 		iter.advance()
 	}
-	end := iter.offset
 	consume(iter, '"')
-	return iter.s[start:end]
+	return string(s)
 }
 
 func loadSequence(iter *iterator) []interface{} {
