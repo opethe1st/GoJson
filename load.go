@@ -57,13 +57,19 @@ func loadKeyword(iter *iterator, keyword string, value interface{}) interface{} 
 
 func isNumber(iter *iterator) bool {
 	switch iter.getCurrent() {
-	case '1', '2', '3', '4', '5', '6', '7', '8', '9':
+	case '1', '2', '3', '4', '5', '6', '7', '8', '9', '-':
 		return true
 	}
 	return false
 }
 
 func loadNumber(iter *iterator) interface{} {
+	//negative numbers
+	sign := 1
+	if iter.getCurrent() == '-'{
+		sign = -1
+		iter.advance()
+	}
 	num := 0
 	for !iter.isEnd() && unicode.IsDigit(rune(iter.getCurrent())) {
 		num *= 10
@@ -71,7 +77,7 @@ func loadNumber(iter *iterator) interface{} {
 		num += int(val)
 		iter.advance()
 	}
-	return num
+	return num*sign
 }
 
 func loadString(iter *iterator) string {
