@@ -47,7 +47,7 @@ func load(iter *iterator) interface{} {
 func loadKeyword(iter *iterator, keyword string, value interface{}) interface{} {
 	for _, val := range keyword {
 		if rune(iter.getCurrent()) != val {
-			panic(fmt.Sprintf("There was an error while reading in a %s", keyword))
+			panic(fmt.Sprintf("There was an error while reading in %s", keyword))
 		}
 		iter.advance()
 	}
