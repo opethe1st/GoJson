@@ -22,8 +22,6 @@ func Load(s string) interface{} {
 func load(iter *iterator) interface{} {
 	consumeWhiteSpace(iter)
 	switch {
-	case iter.isEnd():
-		return nil
 	case iter.getCurrent() == 'n':
 		return loadKeyword(iter, "null", nil)
 	case iter.getCurrent() == 't':
