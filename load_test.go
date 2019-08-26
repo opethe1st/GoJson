@@ -36,21 +36,10 @@ func TestLoad(t *testing.T) {
 
 	for _, testcase := range testCases {
 		output := Load(testcase.input)
-		assert.Equal(output, testcase.expectedOutput, "These should be equal")
+		assert.Equal(testcase.expectedOutput, output)
 	}
 }
 
-func TestIsString(t *testing.T) {
-	testCases := []TestCase{
-		{`This is a string`, false},
-		{`"Key"`, true},
-	}
-	for _, testcase := range testCases {
-		if output := isString(testcase.input, 0); output != testcase.expectedOutput {
-			t.Errorf("Expected isString (%v) to be %t but got %t", testcase.input, testcase.expectedOutput, output)
-		}
-	}
-}
 
 func TestLoadString(t *testing.T) {
 	testCases := []TestCase{
@@ -60,8 +49,9 @@ func TestLoadString(t *testing.T) {
 		{`"Key"   `, "Key"},
 	}
 	for _, testcase := range testCases {
-		if _, output := loadString(testcase.input, 0); output != testcase.expectedOutput {
-			t.Errorf("Expected loadString (%v) to be %v but got %v", testcase.input, testcase.expectedOutput, output)
+		iter := &iterator{s:testcase.input}
+		if output := loadString(iter); output != testcase.expectedOutput {
+			t.Errorf("Expected loadString(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 		}
 	}
 
@@ -71,23 +61,13 @@ func TestLoadString(t *testing.T) {
 		{`"Key"   `, 5},
 	}
 	for _, testcase := range testCases {
-		if output, _ := loadString(testcase.input, 0); output != testcase.expectedOutput {
-			t.Errorf("Expected loadString (%v) to be %v but got %v", testcase.input, testcase.expectedOutput, output)
+		iter := &iterator{s:testcase.input}
+		if loadString(iter); iter.offset != testcase.expectedOutput {
+			t.Errorf("Expected loadString(%v) to be %v but got %v", iter, testcase.expectedOutput, iter.offset)
 		}
 	}
 }
 
-func TestIsSequence(t *testing.T) {
-	testCases := []TestCase{
-		{`[]`, true},
-		{`"Key"`, false},
-	}
-	for _, testcase := range testCases {
-		if output := isSequence(testcase.input, 0); output != testcase.expectedOutput {
-			t.Errorf("Expected isSequence (%v) to be %t but got %t", testcase.input, testcase.expectedOutput, output)
-		}
-	}
-}
 
 func TestLoadSequence(t *testing.T) {
 	assert := assert.New(t)
@@ -100,20 +80,9 @@ func TestLoadSequence(t *testing.T) {
 		{`["v1", {"v2": "v3"}]`, []interface{}{"v1", map[string]interface{}{"v2": "v3"}}},
 	}
 	for _, testcase := range testCases {
-		_, output := loadSequence(testcase.input, 0)
-		assert.Equal(output, testcase.expectedOutput, "Expected loadSequence(%v) to be %v but got %v", testcase.input, testcase.expectedOutput, output)
-	}
-}
-
-func TestIsMapping(t *testing.T) {
-	testCases := []TestCase{
-		{`[]`, false},
-		{`{`, true},
-	}
-	for _, testcase := range testCases {
-		if output := isMapping(testcase.input, 0); output != testcase.expectedOutput {
-			t.Errorf("Expected isSequence (%v) to be %t but got %t", testcase.input, testcase.expectedOutput, output)
-		}
+		iter := &iterator{s:testcase.input}
+		output := loadSequence(iter)
+		assert.Equal(testcase.expectedOutput, output,  "Expected loadSequence(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 	}
 }
 
@@ -126,20 +95,22 @@ func TestLoadMapping(t *testing.T) {
 		{`{"v1": ["v2", "v3"]}`, map[string]interface{}{"v1": []interface{}{"v2", "v3"}}},
 	}
 	for _, testcase := range testCases {
-		_, output := loadMapping(testcase.input, 0)
-		assert.Equal(output, testcase.expectedOutput, "Expected loadMapping(%v) to be %v but got %v", testcase.input, testcase.expectedOutput, output)
+		iter := &iterator{s:testcase.input}
+		output := loadMapping(iter)
+		assert.Equal(testcase.expectedOutput, output, "Expected loadMapping(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 	}
 }
 
 func TestConsumeSpaces(t *testing.T) {
+	assert := assert.New(t)
 	testCases := []TestCase{
 		{`"key"`, 0},
 		{` "key" `, 1},
 		{`   "key"`, 3},
 	}
 	for _, testcase := range testCases {
-		if output := consumeWhiteSpace(testcase.input, 0); output != testcase.expectedOutput {
-			t.Errorf("Expected consumeWhiteSpace (%v) to be %d but got %d", testcase.input, testcase.expectedOutput, output)
-		}
+		iter := &iterator{s:testcase.input}
+		consumeWhiteSpace(iter)
+		assert.Equal(testcase.expectedOutput, iter.offset, "Expected consumeWhiteSpace(%v) to be %d but got %d", iter, testcase.expectedOutput, iter.offset)
 	}
 }
