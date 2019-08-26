@@ -14,106 +14,96 @@ import (
 
 // Load is used load an object from a string
 func Load(s string) interface{} {
-	_, value := load(s, 0)
-	return value
+	iter := &iterator{s:s}
+	return load(iter)
 }
 
-func load(s string, current int) (int, interface{}) {
-	current = consumeWhiteSpace(s, current)
+
+func load(iter *iterator)  interface{} {
+	consumeWhiteSpace(iter)
 	switch {
-	case isString(s, current):
-		return loadString(s, current)
-	case isSequence(s, current):
-		return loadSequence(s, current)
-	case isMapping(s, current):
-		return loadMapping(s, current)
+	case iter.getCurrent() == '"':
+		return loadString(iter)
+	case iter.getCurrent() == '[':
+		return loadSequence(iter)
+	case iter.getCurrent() == '{':
+		return loadMapping(iter)
 	default:
-		end := current + 100
-		if len(s) < end {
-			end = len(s)
+		end := iter.offset + 100
+		if len(iter.s) < end {
+			end = len(iter.s)
 		}
-		panic(fmt.Sprintf("There is an error around\n\n%s", s[current:end]))
+		panic(fmt.Sprintf("There is an error around\n\n%s", iter.s[iter.offset:end]))
 	}
 }
 
 // strings
 
-func isString(s string, current int) bool {
-	return s[current] == '"'
-}
-
-func loadString(s string, current int) (int, interface{}) {
-	// actually should probably raise an error if '"' isn't consumed
-	start := consume(s, current, '"')
-	current = start
-	for current < len(s) && s[current] != '"' {
-		current++
+func loadString(iter *iterator) interface{} {
+	consume(iter, '"')
+	start := iter.offset
+	for !iter.isEnd() && (iter.getCurrent() != '"') {
+		iter.advance()
 	}
-	// and current + 1 since the next not visited character in s is at current + 1
-	return current + 1, s[start:current]
+	end := iter.offset
+	consume(iter, '"')
+	return iter.s[start:end]
 }
 
 // sequences
 
-func isSequence(s string, current int) bool {
-	return s[current] == '['
-}
-
-func loadSequence(s string, current int) (int, []interface{}) {
+func loadSequence(iter *iterator)  []interface{} {
 	seq := make([]interface{}, 0)
-	// actually should probably raise an error if '[' isn't consumed
-	current = consume(s, current, '[')
+	consume(iter, '[')
 	var item interface{}
-	for (current < len(s)) && (s[current] != ']') {
-		current, item = load(s, current)
-		current = consumeWhiteSpace(s, current)
-		// technically not allowed to have ["key",] but it is currently allowed
-		current = consume(s, current, ',')
-		current = consumeWhiteSpace(s, current)
+	for !iter.isEnd() && (iter.getCurrent() != ']') {
+		item = load(iter)
 		seq = append(seq, item)
-		current = consumeWhiteSpace(s, current)
+		consumeWhiteSpace(iter)
+		if iter.getCurrent() == ']'{
+			break
+		}
+		consume(iter, ',')
+		consumeWhiteSpace(iter)
 	}
-	return current + 1, seq
+	consume(iter, ']')
+	return seq
 }
 
 // mappings
 
-func isMapping(s string, current int) bool {
-	return s[current] == '{'
-}
-
-func loadMapping(s string, current int) (int, map[string]interface{}) {
+func loadMapping(iter *iterator) map[string]interface{} {
 	mapping := make(map[string]interface{}, 0)
-	// actually should probably raise an error if '{' isn't consumed
-	current = consume(s, current, '{')
+	consume(iter, '{')
 	var key, value interface{}
-	for (current < len(s)) && (s[current] != '}') {
-		current, key = load(s, current)
-		current = consumeWhiteSpace(s, current)
-		current = consume(s, current, ':')
-		current = consumeWhiteSpace(s, current)
-		current, value = load(s, current)
+	for !iter.isEnd() && (iter.s[iter.offset] != '}')  {
+		key = load(iter)
+		consumeWhiteSpace(iter)
+		consume(iter, ':')
+		consumeWhiteSpace(iter)
+		value = load(iter)
 		mapping[key.(string)] = value
-		// technically not allowed to have {"key":"value",} but it is currently allowed
-		current = consume(s, current, ',')
-		current = consumeWhiteSpace(s, current)
+		if iter.getCurrent() == '}'{
+			break
+		}
+		consume(iter, ',')
+		consumeWhiteSpace(iter)
 	}
-	return current + 1, mapping
+	consume(iter, '}')
+	return mapping
 }
 
 // utils - this could be in a separate file
 
-// consumeWhiteSpace returns the next index after current such that s[index] is not whitespace
-func consumeWhiteSpace(s string, current int) int {
-	for current < len(s) && unicode.IsSpace(rune(s[current])) {
-		current++
+func consumeWhiteSpace(iter *iterator){
+	for !iter.isEnd() && unicode.IsSpace(rune(iter.getCurrent())) {
+		iter.advance()
 	}
-	return current
 }
 
-func consume(s string, current int, char byte) int {
-	if s[current] == char {
-		return current + 1
+func consume(iter *iterator, char byte) {
+	// actually should probably raise an error if char isn't consumed
+	if iter.getCurrent() == char {
+		iter.advance()
 	}
-	return current
 }
