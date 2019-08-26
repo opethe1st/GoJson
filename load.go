@@ -46,7 +46,6 @@ func loadString(iter *iterator) interface{} {
 		iter.advance()
 	}
 	end := iter.offset
-	// and current + 1 since the next not visited character in s is at current + 1
 	consume(iter, '"')
 	return iter.s[start:end]
 }
@@ -75,7 +74,6 @@ func loadSequence(iter *iterator)  []interface{} {
 
 func loadMapping(iter *iterator) map[string]interface{} {
 	mapping := make(map[string]interface{}, 0)
-	// actually should probably raise an error if '{' isn't consumed
 	consume(iter, '{')
 	var key, value interface{}
 	for !iter.isEnd() && (iter.s[iter.offset] != '}')  {
@@ -85,17 +83,18 @@ func loadMapping(iter *iterator) map[string]interface{} {
 		consumeWhiteSpace(iter)
 		value = load(iter)
 		mapping[key.(string)] = value
-		// technically not allowed to have {"key":"value",} but it is currently allowed
+		if iter.getCurrent() == '}'{
+			break
+		}
 		consume(iter, ',')
 		consumeWhiteSpace(iter)
 	}
-	iter.advance()
+	consume(iter, '}')
 	return mapping
 }
 
 // utils - this could be in a separate file
 
-// consumeWhiteSpace returns the next index after current such that s[index] is not whitespace
 func consumeWhiteSpace(iter *iterator){
 	for !iter.isEnd() && unicode.IsSpace(rune(iter.getCurrent())) {
 		iter.advance()
@@ -103,7 +102,7 @@ func consumeWhiteSpace(iter *iterator){
 }
 
 func consume(iter *iterator, char byte) {
-	// actually should probably raise an error if '[' isn't consumed
+	// actually should probably raise an error if char isn't consumed
 	if iter.getCurrent() == char {
 		iter.advance()
 	}
