@@ -1,8 +1,9 @@
 package json
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type TestCase struct {
@@ -26,7 +27,8 @@ func TestLoad(t *testing.T) {
 				},
 				"k4": null,
 				"k5": true,
-				"k6": false
+				"k6": false,
+				"k	6": null,
 			}`, map[string]interface{}{
 				"k1": "v1",
 				"k2": []interface{}{"v2"},
@@ -37,6 +39,7 @@ func TestLoad(t *testing.T) {
 				"k4": nil,
 				"k5": true,
 				"k6": false,
+				"k\t6": nil,
 			},
 		},
 	}
@@ -72,12 +75,19 @@ func TestLoadString(t *testing.T) {
 		{`"   Key"`, "   Key"},
 		{`"Key"`, "Key"},
 		{`"Key"   `, "Key"},
+		{`"abc\t123"   `, "abc\t123"},
+		{`"abc\n123"`, "abc\n123"},
+		{`"she said \"a\""`, "she said \"a\""},
+		{`"\\"`, "\\"},
+		{`"abc\123"`, "abc\\123"},
+		{`"\u1234"`, "ሴ"},
 	}
 	for _, testcase := range testCases {
 		iter := &iterator{s: testcase.input}
 		if output := loadString(iter); output != testcase.expectedOutput {
 			t.Errorf("Expected loadString(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 		}
+
 	}
 
 	testCases = []TestCase{

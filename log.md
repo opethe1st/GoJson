@@ -38,3 +38,8 @@ So I discovered the concept that was missing was the concept of iterators. A ite
 And this made other stuff make sense since I moved the stuff that didn't make sense in the iterator to standalone functions that instead of (s, current)
 made use of the iterator. The other interesting thing is that I violated Command Query Responsibility Segregation (CQRS) and it was the right decision.
 Know when to break the rules!
+
+
+Probably need to make sure this handles unicode
+
+Just realized that I didn't check to see what the form is when a file is read? Are the characters interpreted literally? Making the need for string parsing moot?
