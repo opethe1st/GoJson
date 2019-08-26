@@ -58,13 +58,13 @@ func loadString(iter *iterator) interface{} {
 	consume(iter, '"')
 	s := make([]rune, 0)
 	mapping := map[rune]rune{
-		'"': '"',
+		'"':  '"',
 		'\\': '\\',
-		'b': '\b',
-		'f': '\f',
-		'n': '\n',
-		'r': '\r',
-		't': '\t',
+		'b':  '\b',
+		'f':  '\f',
+		'n':  '\n',
+		'r':  '\r',
+		't':  '\t',
 	}
 	// TODO(better as a function?)
 	convertToDecimal := map[rune]rune{
@@ -96,15 +96,15 @@ func loadString(iter *iterator) interface{} {
 			iter.advance()
 			current := iter.getCurrent()
 			switch current {
-			case '"', '\\', 'b' ,'f' ,'n' ,'r', 't':
+			case '"', '\\', 'b', 'f', 'n', 'r', 't':
 				s = append(s, mapping[rune(current)])
 				//need to handle the default case and handle u and hex digits
 			case 'u':
 				var ans rune
-				for i:=0; i<4; i++ {
+				for i := 0; i < 4; i++ {
 					iter.advance() // move past the 'u'
 					fmt.Println(i, ans, string(iter.getCurrent()))
-					ans = ans*16
+					ans = ans * 16
 					ans += convertToDecimal[rune(iter.getCurrent())]
 				}
 				s = append(s, ans)
@@ -120,7 +120,6 @@ func loadString(iter *iterator) interface{} {
 	consume(iter, '"')
 	return string(s)
 }
-
 
 func loadSequence(iter *iterator) []interface{} {
 	seq := make([]interface{}, 0)
