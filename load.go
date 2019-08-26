@@ -14,14 +14,21 @@ import (
 
 // Load is used load an object from a string
 func Load(s string) interface{} {
-	iter := &iterator{s:s}
+	iter := &iterator{s: s}
 	return load(iter)
 }
 
-
-func load(iter *iterator)  interface{} {
+func load(iter *iterator) interface{} {
 	consumeWhiteSpace(iter)
 	switch {
+	case iter.isEnd():
+		return nil
+	case iter.getCurrent() == 'n':
+		return loadKeyword(iter, "null", nil)
+	case iter.getCurrent() == 't':
+		return loadKeyword(iter, "true", true)
+	case iter.getCurrent() == 'f':
+		return loadKeyword(iter, "false", false)
 	case iter.getCurrent() == '"':
 		return loadString(iter)
 	case iter.getCurrent() == '[':
@@ -37,7 +44,15 @@ func load(iter *iterator)  interface{} {
 	}
 }
 
-// strings
+func loadKeyword(iter *iterator, keyword string, value interface{}) interface{} {
+	for _, val := range keyword {
+		if rune(iter.getCurrent()) != val {
+			panic(fmt.Sprintf("There was an error while reading in a %s", keyword))
+		}
+		iter.advance()
+	}
+	return value
+}
 
 func loadString(iter *iterator) interface{} {
 	consume(iter, '"')
@@ -50,9 +65,7 @@ func loadString(iter *iterator) interface{} {
 	return iter.s[start:end]
 }
 
-// sequences
-
-func loadSequence(iter *iterator)  []interface{} {
+func loadSequence(iter *iterator) []interface{} {
 	seq := make([]interface{}, 0)
 	consume(iter, '[')
 	var item interface{}
@@ -60,7 +73,7 @@ func loadSequence(iter *iterator)  []interface{} {
 		item = load(iter)
 		seq = append(seq, item)
 		consumeWhiteSpace(iter)
-		if iter.getCurrent() == ']'{
+		if iter.getCurrent() == ']' {
 			break
 		}
 		consume(iter, ',')
@@ -70,20 +83,18 @@ func loadSequence(iter *iterator)  []interface{} {
 	return seq
 }
 
-// mappings
-
 func loadMapping(iter *iterator) map[string]interface{} {
 	mapping := make(map[string]interface{}, 0)
 	consume(iter, '{')
 	var key, value interface{}
-	for !iter.isEnd() && (iter.s[iter.offset] != '}')  {
+	for !iter.isEnd() && (iter.s[iter.offset] != '}') {
 		key = load(iter)
 		consumeWhiteSpace(iter)
 		consume(iter, ':')
 		consumeWhiteSpace(iter)
 		value = load(iter)
 		mapping[key.(string)] = value
-		if iter.getCurrent() == '}'{
+		if iter.getCurrent() == '}' {
 			break
 		}
 		consume(iter, ',')
@@ -95,7 +106,7 @@ func loadMapping(iter *iterator) map[string]interface{} {
 
 // utils - this could be in a separate file
 
-func consumeWhiteSpace(iter *iterator){
+func consumeWhiteSpace(iter *iterator) {
 	for !iter.isEnd() && unicode.IsSpace(rune(iter.getCurrent())) {
 		iter.advance()
 	}
