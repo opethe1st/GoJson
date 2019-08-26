@@ -42,4 +42,3 @@ Know when to break the rules!
 
 Probably need to make sure this handles unicode
 
-Just realized that I didn't check to see what the form is when a file is read? Are the characters interpreted literally? Making the need for string parsing moot?
