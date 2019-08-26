@@ -56,7 +56,7 @@ func loadKeyword(iter *iterator, keyword string, value interface{}) interface{} 
 
 func loadString(iter *iterator) interface{} {
 	consume(iter, '"')
-	s := make([]rune, 0)  // this should probably be a string builder
+	s := make([]rune, 0)
 	mapping := map[rune]rune{
 		'"': '"',
 		'\\': '\\',
