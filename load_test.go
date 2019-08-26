@@ -1,6 +1,7 @@
 package json
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -41,7 +42,7 @@ func TestLoad(t *testing.T) {
 				"k5":   true,
 				"k6":   false,
 				"k\t6": nil,
-				"k7": 123456,
+				"k7":   123456.0,
 			},
 		},
 	}
@@ -72,6 +73,7 @@ func TestLoadKeyword(t *testing.T) {
 }
 
 func TestLoadString(t *testing.T) {
+	assert := assert.New(t) // redefinition here -- ugly!
 	testCases := []TestCase{
 		{`"Key"`, "Key"},
 		{`"   Key"`, "   Key"},
@@ -86,23 +88,11 @@ func TestLoadString(t *testing.T) {
 	}
 	for _, testcase := range testCases {
 		iter := &iterator{s: testcase.input}
-		if output := loadString(iter); output != testcase.expectedOutput {
-			t.Errorf("Expected loadString(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
-		}
+		output := loadString(iter)
+		assert.Equal(testcase.expectedOutput, output, "Expected loadNumber(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 
 	}
 
-	testCases = []TestCase{
-		{`"Key"`, 5},
-		{`"   Key"`, 8},
-		{`"Key"   `, 5},
-	}
-	for _, testcase := range testCases {
-		iter := &iterator{s: testcase.input}
-		if loadString(iter); iter.offset != testcase.expectedOutput {
-			t.Errorf("Expected loadString(%v) to be %v but got %v", iter, testcase.expectedOutput, iter.offset)
-		}
-	}
 }
 
 func TestLoadNumber(t *testing.T) {
@@ -110,15 +100,25 @@ func TestLoadNumber(t *testing.T) {
 		{`123`, 123.0},
 		{`-123`, -123.0},
 		{`-123.123`, -123.123},
+		{`0.234`, 0.234},
+		{`1.234e2`, 123.4},
+		{`-1.234e2`, -123.4},
+		{`-0.234e2`, -23.4},
 	}
 	for _, testcase := range testCases {
 		iter := &iterator{s: testcase.input}
-		if output := loadNumber(iter); output != testcase.expectedOutput {
+		output := loadNumber(iter)
+		if !floatEquals(output.(float64), testcase.expectedOutput.(float64)) {
 			t.Errorf("Expected loadNumber(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 		}
-
 	}
+}
 
+func floatEquals(a, b float64) bool {
+	if math.Abs(a-b) < 0.00000001 {
+		return true
+	}
+	return false
 }
 
 func TestLoadSequence(t *testing.T) {
