@@ -1,8 +1,7 @@
 package json
 
-
-type iterator struct{
-	s string
+type iterator struct {
+	s      string
 	offset int
 }
 
