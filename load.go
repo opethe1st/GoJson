@@ -9,6 +9,8 @@ package json
 
 import (
 	"fmt"
+	"math"
+	"strconv"
 	"unicode"
 )
 
@@ -21,14 +23,14 @@ func Load(s string) interface{} {
 func load(iter *iterator) interface{} {
 	consumeWhiteSpace(iter)
 	switch {
-	case iter.isEnd():
-		return nil
 	case iter.getCurrent() == 'n':
 		return loadKeyword(iter, "null", nil)
 	case iter.getCurrent() == 't':
 		return loadKeyword(iter, "true", true)
 	case iter.getCurrent() == 'f':
 		return loadKeyword(iter, "false", false)
+	case isNumber(iter):
+		return loadNumber(iter)
 	case iter.getCurrent() == '"':
 		return loadString(iter)
 	case iter.getCurrent() == '[':
@@ -54,7 +56,74 @@ func loadKeyword(iter *iterator, keyword string, value interface{}) interface{} 
 	return value
 }
 
-func loadString(iter *iterator) interface{} {
+func isNumber(iter *iterator) bool {
+	switch iter.getCurrent() {
+	case '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '0':
+		return true
+	}
+	return false
+}
+
+func loadNumber(iter *iterator) interface{} {
+	//negative numbers
+	sign := 1.0
+	if iter.getCurrent() == '-' {
+		sign = -1.0
+		iter.advance()
+	}
+	num := 0.0
+	for !iter.isEnd() && unicode.IsDigit(rune(iter.getCurrent())) {
+		num *= 10
+		val, _ := strconv.ParseInt(string(iter.getCurrent()), 10, 64)
+		num += float64(val)
+		iter.advance()
+	}
+
+	// decimal
+	// some of the code here is a duplicate of what is above, I should consolidate into one function.
+	consume(iter, '.')
+	frac := 0.0
+	power := 0.1
+	for !iter.isEnd() && unicode.IsDigit(rune(iter.getCurrent())) {
+		val, _ := strconv.ParseInt(string(iter.getCurrent()), 10, 64)
+		frac += power * float64(val)
+		power *= 0.1
+		iter.advance()
+	}
+
+	exponent := 0.0
+	//exponent
+	if !iter.isEnd() && ((iter.getCurrent() == 'e') || (iter.getCurrent() == 'E')) {
+		if iter.getCurrent() == 'e' {
+			consume(iter, 'e')
+		}
+		if iter.getCurrent() == 'E' {
+			consume(iter, 'E')
+		}
+		exponentSign := 1.0
+		//TODO(ope) this is subtly wrong since it allows +-123234, I will fix later
+		if !iter.isEnd() && iter.getCurrent() == '+' {
+			consume(iter, '+')
+		}
+		if !iter.isEnd() && iter.getCurrent() == '-' {
+			consume(iter, '-')
+			exponentSign = -1.0
+		}
+		// there needs to be at least one digit after an exponent
+		exponent = 0.0
+		for !iter.isEnd() && unicode.IsDigit(rune(iter.getCurrent())) {
+			exponent *= 10
+			val, _ := strconv.ParseInt(string(iter.getCurrent()), 10, 64)
+			exponent += float64(val)
+			iter.advance()
+		}
+		exponent *= exponentSign
+	}
+	fmt.Println(num, frac, exponent)
+	return (num + frac) * sign * math.Pow(10, exponent)
+}
+
+func loadString(iter *iterator) string {
 	consume(iter, '"')
 	s := make([]rune, 0)
 	mapping := map[rune]rune{
@@ -101,6 +170,7 @@ func loadString(iter *iterator) interface{} {
 				//need to handle the default case and handle u and hex digits
 			case 'u':
 				var ans rune
+				// I should make sure these are valid hex digits btw, but will leave it for error reporting
 				for i := 0; i < 4; i++ {
 					iter.advance() // move past the 'u'
 					fmt.Println(i, ans, string(iter.getCurrent()))
@@ -170,7 +240,7 @@ func consumeWhiteSpace(iter *iterator) {
 
 func consume(iter *iterator, char byte) {
 	// actually should probably raise an error if char isn't consumed
-	if iter.getCurrent() == char {
+	if !iter.isEnd() && iter.getCurrent() == char {
 		iter.advance()
 	}
 }
