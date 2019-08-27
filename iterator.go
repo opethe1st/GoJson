@@ -5,14 +5,14 @@ type iterator struct {
 	offset int
 }
 
-func (iter *iterator) getCurrent() byte {
+func (iter *iterator) Current() byte {
 	return iter.s[iter.offset]
 }
 
-func (iter *iterator) advance() {
+func (iter *iterator) Next() {
 	iter.offset++
 }
 
-func (iter *iterator) isEnd() bool {
-	return iter.offset >= len(iter.s)
+func (iter *iterator) HasNext() bool {
+	return iter.offset < len(iter.s)
 }
