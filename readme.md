@@ -6,9 +6,9 @@ I wrote this to practise Go.
 What's left?
 * Handle whitespace ✅
 * Error handling
-* Handle boolean and null literals
-* Handle number literals
-* Handle string escapes
+* Handle boolean and null literals ✅
+* Handle number literals ✅
+* Handle string escapes ✅
 * Write the dump function - > (easy? how do we know the type of the object being pointed to?)
 * Benchmark against the standard libraries implementation
 * Study the standard libraries implementation
