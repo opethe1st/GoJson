@@ -12,13 +12,13 @@ import (
 )
 
 // Load is used load an object from a string
-func Load(s string) interface{} {
+func Load(s []byte) interface{} {
 	iter := &iterator{s: s}
 	return load(iter)
 }
 
 func load(iter *iterator) interface{} {
-	consumeWhiteSpace(iter)
+	iter.AdvancePassWhiteSpace()
 	switch {
 	case iter.Current() == 'n':
 		return loadKeyword(iter, "null", nil)
@@ -58,6 +58,7 @@ func isNumber(iter *iterator) bool {
 }
 
 func loadNumber(iter *iterator) interface{} {
+	//TODO(ope) change this so it uses strconv.Parse
 	//negative numbers
 	sign := 1.0
 	if iter.Current() == '-' {
@@ -74,7 +75,7 @@ func loadNumber(iter *iterator) interface{} {
 
 	// decimal
 	// some of the code here is a duplicate of what is above, I should consolidate into one function.
-	consume(iter, '.')
+	AdvancePass(iter, '.')
 	frac := 0.0
 	power := 0.1
 	for iter.HasNext() && unicode.IsDigit(rune(iter.Current())) {
@@ -88,18 +89,18 @@ func loadNumber(iter *iterator) interface{} {
 	//exponent
 	if iter.HasNext() && ((iter.Current() == 'e') || (iter.Current() == 'E')) {
 		if iter.Current() == 'e' {
-			consume(iter, 'e')
+			AdvancePass(iter, 'e')
 		}
 		if iter.Current() == 'E' {
-			consume(iter, 'E')
+			AdvancePass(iter, 'E')
 		}
 		exponentSign := 1.0
-		//TODO(ope) this is subtly wrong since it allows +-123234, I will fix later
+		//TODO(ope) this is Slightly wrong since it allows +-123234, I will fix later
 		if iter.HasNext() && iter.Current() == '+' {
-			consume(iter, '+')
+			AdvancePass(iter, '+')
 		}
 		if iter.HasNext() && iter.Current() == '-' {
-			consume(iter, '-')
+			AdvancePass(iter, '-')
 			exponentSign = -1.0
 		}
 		// there needs to be at least one digit after an exponent
@@ -115,122 +116,142 @@ func loadNumber(iter *iterator) interface{} {
 	return (num + frac) * sign * math.Pow(10, exponent)
 }
 
+// func loadString(iter *iterator) string {
+// 	consume(iter, '"')
+// 	s := make([]rune, 0)
+// 	mapping := map[rune]rune{
+// 		'"':  '"',
+// 		'\\': '\\',
+// 		'b':  '\b',
+// 		'f':  '\f',
+// 		'n':  '\n',
+// 		'r':  '\r',
+// 		't':  '\t',
+// 	}
+// 	// TODO(better as a function?)
+// 	convertToDecimal := map[rune]rune{
+// 		'0': 0,
+// 		'1': 1,
+// 		'2': 2,
+// 		'3': 3,
+// 		'4': 4,
+// 		'5': 5,
+// 		'6': 6,
+// 		'7': 7,
+// 		'8': 8,
+// 		'9': 9,
+// 		'a': 10,
+// 		'A': 10,
+// 		'b': 11,
+// 		'B': 11,
+// 		'c': 12,
+// 		'C': 12,
+// 		'd': 13,
+// 		'D': 13,
+// 		'e': 14,
+// 		'E': 14,
+// 		'f': 15,
+// 		'F': 15,
+// 	}
+// 	for iter.HasNext() && (iter.Current() != '"') {
+// 		if iter.Current() == '\\' {
+// 			iter.Next()
+// 			current := iter.Current()
+// 			switch current {
+// 			case '"', '\\', 'b', 'f', 'n', 'r', 't':
+// 				s = append(s, mapping[rune(current)])
+// 				//need to handle the default case and handle u and hex digits
+// 			case 'u':
+// 				var ans rune
+// 				// I should make sure these are valid hex digits btw, but will leave it for error reporting
+// 				for i := 0; i < 4; i++ {
+// 					iter.Next() // move past the 'u'
+// 					ans = ans * 16
+// 					ans += convertToDecimal[rune(iter.Current())]
+// 				}
+// 				s = append(s, ans)
+// 			default:
+// 				s = append(s, rune('\\'))
+// 				s = append(s, rune(iter.Current()))
+// 			}
+// 		} else {
+// 			s = append(s, rune(iter.Current()))
+// 		}
+// 		iter.Next()
+// 	}
+// 	consume(iter, '"')
+// 	return string(s)
+// }
+
 func loadString(iter *iterator) string {
-	consume(iter, '"')
-	s := make([]rune, 0)
-	mapping := map[rune]rune{
-		'"':  '"',
-		'\\': '\\',
-		'b':  '\b',
-		'f':  '\f',
-		'n':  '\n',
-		'r':  '\r',
-		't':  '\t',
+	var str string
+	start := iter.Offset
+	AdvancePass(iter, '"')
+	if iter.Current() == '"' {
+		return str
 	}
-	// TODO(better as a function?)
-	convertToDecimal := map[rune]rune{
-		'0': 0,
-		'1': 1,
-		'2': 2,
-		'3': 3,
-		'4': 4,
-		'5': 5,
-		'6': 6,
-		'7': 7,
-		'8': 8,
-		'9': 9,
-		'a': 10,
-		'A': 10,
-		'b': 11,
-		'B': 11,
-		'c': 12,
-		'C': 12,
-		'd': 13,
-		'D': 13,
-		'e': 14,
-		'E': 14,
-		'f': 15,
-		'F': 15,
-	}
-	for iter.HasNext() && (iter.Current() != '"') {
-		if iter.Current() == '\\' {
-			iter.Next()
-			current := iter.Current()
-			switch current {
-			case '"', '\\', 'b', 'f', 'n', 'r', 't':
-				s = append(s, mapping[rune(current)])
-				//need to handle the default case and handle u and hex digits
-			case 'u':
-				var ans rune
-				// I should make sure these are valid hex digits btw, but will leave it for error reporting
-				for i := 0; i < 4; i++ {
-					iter.Next() // move past the 'u'
-					ans = ans * 16
-					ans += convertToDecimal[rune(iter.Current())]
-				}
-				s = append(s, ans)
-			default:
-				s = append(s, rune('\\'))
-				s = append(s, rune(iter.Current()))
-			}
-		} else {
-			s = append(s, rune(iter.Current()))
-		}
+	for iter.HasNext() && iter.Current() != '"' {
 		iter.Next()
 	}
-	consume(iter, '"')
-	return string(s)
+	AdvancePass(iter, '"')
+	str, err := strconv.Unquote(string(iter.Slice(start, iter.Offset)))
+	if err != nil {
+		panic(err)
+	}
+	return str
 }
 
 func loadSequence(iter *iterator) []interface{} {
 	seq := make([]interface{}, 0)
-	consume(iter, '[')
+	AdvancePass(iter, '[')
+	if iter.Current() == ']' {
+		AdvancePass(iter, ']')
+		return seq
+	}
 	var item interface{}
-	for iter.HasNext() && (iter.Current() != ']') {
+	for iter.HasNext() {
 		item = load(iter)
 		seq = append(seq, item)
-		consumeWhiteSpace(iter)
+		iter.AdvancePassWhiteSpace()
 		if iter.Current() == ']' {
 			break
 		}
-		consume(iter, ',')
-		consumeWhiteSpace(iter)
+		AdvancePass(iter, ',')
+		iter.AdvancePassWhiteSpace()
 	}
-	consume(iter, ']')
+	AdvancePass(iter, ']')
 	return seq
 }
 
 func loadMapping(iter *iterator) map[string]interface{} {
 	mapping := make(map[string]interface{}, 0)
-	consume(iter, '{')
+	AdvancePass(iter, '{')
+	if iter.Current() == '}' {
+		AdvancePass(iter, '}')
+		return mapping
+	}
 	var key, value interface{}
-	for iter.HasNext() && (iter.Current() != '}') {
+	for iter.HasNext() {
 		key = load(iter)
-		consumeWhiteSpace(iter)
-		consume(iter, ':')
-		consumeWhiteSpace(iter)
+		iter.AdvancePassWhiteSpace()
+		AdvancePass(iter, ':')
+		iter.AdvancePassWhiteSpace()
 		value = load(iter)
 		mapping[key.(string)] = value
-		consumeWhiteSpace(iter)
+		iter.AdvancePassWhiteSpace()
 		if iter.Current() == '}' {
 			break
 		}
-		consume(iter, ',')
-		consumeWhiteSpace(iter)
+		AdvancePass(iter, ',')
+		iter.AdvancePassWhiteSpace()
 	}
-	consume(iter, '}')
+	AdvancePass(iter, '}')
 	return mapping
 }
 
 // utils - this could be in a separate file
 
-func consumeWhiteSpace(iter *iterator) {
-	for iter.HasNext() && unicode.IsSpace(rune(iter.Current())) {
-		iter.Next()
-	}
-}
-
-func consume(iter *iterator, char byte) {
+func AdvancePass(iter *iterator, char byte) {
 	// actually should probably raise an error if char isn't consumed
 	if iter.HasNext() && iter.Current() == char {
 		iter.Next()
@@ -242,25 +263,25 @@ func consume(iter *iterator, char byte) {
 }
 
 func errorMessage(iter *iterator) string {
-	startBefore := iter.offset - 50
+	startBefore := iter.Offset - 50
 	if startBefore < 0 {
 		startBefore = 0
 	}
-	endBefore := iter.offset
+	endBefore := iter.Offset
 	if endBefore < 0 {
 		endBefore = 0
 	}
-	before := iter.s[startBefore:endBefore]
+	before := iter.Slice(startBefore, endBefore)
 
-	startAfter := iter.offset + 1
-	if startAfter > len(iter.s) {
-		startAfter = len(iter.s)
+	startAfter := iter.Offset + 1
+	if startAfter > iter.Len() {
+		startAfter = iter.Len()
 	}
-	endAfter := iter.offset + 50
-	if endAfter > len(iter.s) {
-		endAfter = len(iter.s)
+	endAfter := iter.Offset + 50
+	if endAfter > iter.Len() {
+		endAfter = iter.Len()
 	}
-	after := iter.s[startAfter:endAfter]
+	after := iter.Slice(startAfter, endAfter)
 	// this doesnt work well if the character to underline is a whitespace
 	return fmt.Sprintf(`There is an error around
 	%s%s%s
