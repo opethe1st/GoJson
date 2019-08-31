@@ -42,3 +42,9 @@ Know when to break the rules!
 
 Probably need to make sure this handles unicode
 
+So just found out my implementation is horribly slow for this input compared to the standard libraries implementation. I wonder why that is the
+case.
+
+
+So I looked at the official go package and I can't see any reason why mine should be significantly slower. I initially thought it could be that I used
+recursion but they used recursion too. I am trying out benchmarkig to figure this out.
