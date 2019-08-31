@@ -5,3 +5,5 @@
 # Go
 coverage.out
 trace.out
+json.test
+cpu.out
