@@ -1,4 +1,3 @@
-
 package json
 
 import (
@@ -6,9 +5,9 @@ import (
 )
 
 // ExampleLoad demonstrates how to use Load
-func ExampleLoad(){
-	s := Load([]byte(`["v1", "v2"]`))
+func ExampleLoad() {
+	s := Unmarshall([]byte(`["v1", "v2"]`))
 	fmt.Println(s)
 	// Output:
-    // [v1 v2]
+	// [v1 v2]
 }

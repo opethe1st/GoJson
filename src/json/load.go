@@ -9,36 +9,36 @@ import (
 	"unicode"
 )
 
-// Load is used load an object from a string
-func Load(s []byte) interface{} {
+// Unmarshall is used load an object from a string
+func Unmarshall(s []byte) interface{} {
 	// - should I have called it Unmarshal to be consistent?
-	return load(&iterator{s: s})
+	return unmarshall(&iterator{s: s})
 }
 
-func load(iter *iterator) interface{} {
+func unmarshall(iter *iterator) interface{} {
 	iter.AdvancePastAllWhiteSpace()
 	switch {
 	case iter.Current() == 'n':
-		return loadKeyword(iter, "null", nil)
+		return unmarshallKeyword(iter, "null", nil)
 	case iter.Current() == 't':
-		return loadKeyword(iter, "true", true)
+		return unmarshallKeyword(iter, "true", true)
 	case iter.Current() == 'f':
-		return loadKeyword(iter, "false", false)
+		return unmarshallKeyword(iter, "false", false)
 	case isNumber(iter):
-		return loadNumber(iter)
+		return unmarshallNumber(iter)
 	case iter.Current() == '"':
-		return loadString(iter)
+		return unmarshallString(iter)
 	case iter.Current() == '[':
-		return loadArray(iter)
+		return unmarshallArray(iter)
 	case iter.Current() == '{':
-		return loadObject(iter)
+		return unmarshallObject(iter)
 	default:
 		// should I be using panic at all? or just return the error as a value?
 		panic(errorMsg(iter, "Cannot detect the value here"))
 	}
 }
 
-func loadKeyword(iter *iterator, keyword string, value interface{}) interface{} {
+func unmarshallKeyword(iter *iterator, keyword string, value interface{}) interface{} {
 	for _, val := range keyword {
 		if rune(iter.Current()) != val {
 			panic(errorMsg(iter, "There was an error while reading in %s", keyword))
@@ -56,7 +56,7 @@ func isNumber(iter *iterator) bool {
 	return false
 }
 
-func loadNumber(iter *iterator) interface{} {
+func unmarshallNumber(iter *iterator) interface{} {
 	start := iter.Offset
 	isFloat := false
 	if (iter.Current() == '-') || (iter.Current() == '+') {
@@ -99,7 +99,7 @@ func loadNumber(iter *iterator) interface{} {
 	return intValue
 }
 
-func loadString(iter *iterator) (str string) {
+func unmarshallString(iter *iterator) (str string) {
 	start := iter.Offset
 	iter.AdvancePast('"')
 	if iter.Current() == '"' {
@@ -124,7 +124,7 @@ func loadString(iter *iterator) (str string) {
 	return
 }
 
-func loadArray(iter *iterator) []interface{} {
+func unmarshallArray(iter *iterator) []interface{} {
 	array := make([]interface{}, 0)
 	iter.AdvancePast('[')
 	if iter.Current() == ']' {
@@ -133,7 +133,7 @@ func loadArray(iter *iterator) []interface{} {
 	}
 	var item interface{}
 	for iter.HasNext() {
-		item = load(iter)
+		item = unmarshall(iter)
 		array = append(array, item)
 		iter.AdvancePastAllWhiteSpace()
 		if iter.Current() == ']' {
@@ -146,7 +146,7 @@ func loadArray(iter *iterator) []interface{} {
 	return array
 }
 
-func loadObject(iter *iterator) map[string]interface{} {
+func unmarshallObject(iter *iterator) map[string]interface{} {
 	object := make(map[string]interface{}, 0)
 	iter.AdvancePast('{')
 	if iter.Current() == '}' {
@@ -155,9 +155,9 @@ func loadObject(iter *iterator) map[string]interface{} {
 	}
 	var key, value interface{}
 	for iter.HasNext() {
-		key = load(iter)
+		key = unmarshall(iter)
 		iter.AdvancePast(':')
-		value = load(iter)
+		value = unmarshall(iter)
 
 		object[key.(string)] = value
 

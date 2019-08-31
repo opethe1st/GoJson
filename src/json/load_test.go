@@ -6,7 +6,7 @@ import (
 )
 
 type TestCase struct {
-	name string
+	name           string
 	input          []byte
 	expectedOutput interface{}
 }
@@ -48,7 +48,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	for _, testcase := range testCases {
-		output := Load(testcase.input)
+		output := Unmarshall(testcase.input)
 		assert.Equal(testcase.expectedOutput, output)
 	}
 }
@@ -56,7 +56,7 @@ func TestLoad(t *testing.T) {
 func TestLoadKeyword(t *testing.T) {
 	assert := assert.New(t)
 	testcases := []struct {
-		name string
+		name    string
 		input   []byte
 		keyword string
 		value   interface{}
@@ -68,9 +68,9 @@ func TestLoadKeyword(t *testing.T) {
 	for _, testcase := range testcases {
 		t.Run(
 			testcase.name,
-			func (t *testing.T) {
+			func(t *testing.T) {
 				iter := &iterator{s: testcase.input}
-				output := loadKeyword(iter, testcase.keyword, testcase.value)
+				output := unmarshallKeyword(iter, testcase.keyword, testcase.value)
 				assert.Equal(testcase.value, output, "Expected loadKeyword(%v, %v, %v) to be %v but got %v", iter, testcase.keyword, testcase.value, testcase.value, output)
 			},
 		)
@@ -97,9 +97,9 @@ func TestLoadString(t *testing.T) {
 	for _, testcase := range testCases {
 		t.Run(
 			testcase.name,
-			func (t *testing.T) {
+			func(t *testing.T) {
 				iter := &iterator{s: testcase.input}
-				output := loadString(iter)
+				output := unmarshallString(iter)
 				assert.Equal(testcase.expectedOutput, output, "Expected loadNumber(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 			},
 		)
@@ -122,9 +122,9 @@ func TestLoadNumber(t *testing.T) {
 	for _, testcase := range testCases {
 		t.Run(
 			testcase.name,
-			func (t *testing.T){
+			func(t *testing.T) {
 				iter := &iterator{s: testcase.input}
-				output := loadNumber(iter)
+				output := unmarshallNumber(iter)
 				if !floatEquals(output.(float64), testcase.expectedOutput.(float64)) {
 					t.Errorf("Expected loadNumber(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 				}
@@ -141,9 +141,9 @@ func TestLoadNumber(t *testing.T) {
 	for _, testcase := range testCases {
 		t.Run(
 			testcase.name,
-			func (t *testing.T) {
+			func(t *testing.T) {
 				iter := &iterator{s: testcase.input}
-				output := loadNumber(iter)
+				output := unmarshallNumber(iter)
 				assert.Equal(testcase.expectedOutput, output)
 			},
 		)
@@ -163,9 +163,9 @@ func TestLoadArray(t *testing.T) {
 	for _, testcase := range testCases {
 		t.Run(
 			testcase.name,
-			func (t *testing.T) {
+			func(t *testing.T) {
 				iter := &iterator{s: testcase.input}
-				output := loadArray(iter)
+				output := unmarshallArray(iter)
 				assert.Equal(testcase.expectedOutput, output, "Expected loadArray(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 			},
 		)
@@ -183,9 +183,9 @@ func TestLoadObject(t *testing.T) {
 	for _, testcase := range testCases {
 		t.Run(
 			testcase.name,
-			func (t *testing.T) {
+			func(t *testing.T) {
 				iter := &iterator{s: testcase.input}
-				output := loadObject(iter)
+				output := unmarshallObject(iter)
 				assert.Equal(testcase.expectedOutput, output, "Expected loadObject(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 			},
 		)

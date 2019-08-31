@@ -64,3 +64,8 @@ Wow. I just took a peek at the VsCode debugger docs and Wow.
 
 The case against adding AdvancePast and AdvancePastWhiteSpace - now when I declare the interface, I include two methods that are there for convenience and not part of the basis operation (by this I mean,
 they can be implemented in terms of other operations)
+
+
+Just realised the validate and load are actually two different usecases. Validate can be used with tools that view json to produce useful errors in a UI for example.
+
+Also noticed my implementation is slower even though I don't do the validation step. Why? and it's also puzzling because my loading of strings was 3 times as fast. Was it fast because of the no validation?
