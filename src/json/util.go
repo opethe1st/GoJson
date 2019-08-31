@@ -2,6 +2,7 @@ package json
 
 import (
 	"fmt"
+	"math"
 )
 
 func errorMsg(iter *iterator, msg string, msgArgs ...interface{}) string {
@@ -33,3 +34,9 @@ func errorMsg(iter *iterator, msg string, msgArgs ...interface{}) string {
 	`, before, underlined, after, fmt.Sprintf(msg, msgArgs...))
 }
 
+func floatEquals(a, b float64) bool {
+	if math.Abs(a-b) < 0.00000001 {
+		return true
+	}
+	return false
+}

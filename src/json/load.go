@@ -76,6 +76,9 @@ func loadNumber(iter *iterator) interface{} {
 		isFloat = true
 		iter.Next()
 	}
+	if (iter.Current() == '-') || (iter.Current() == '+') {
+		iter.Next()
+	}
 	for unicode.IsDigit(rune(iter.Current())) {
 		iter.Next()
 	}

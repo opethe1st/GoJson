@@ -48,3 +48,13 @@ case.
 
 So I looked at the official go package and I can't see any reason why mine should be significantly slower. I initially thought it could be that I used
 recursion but they used recursion too. I am trying out benchmarkig to figure this out.
+
+
+So that was interesting. I figured out why it was slow. It was because for some reason my handwritten strconv.Unquote() didn't perform anywhere close to the
+stdlib's implementation. I find that a bit worrying becaue it means I haven't really learned how to write performant Go code yet. I still need to learn more about benchmarking
+but boy did it work. It has also be nice to get acquainted with using a debugger.
+
+At this point where I am really proud of what I have written. It is nice and clear without sacrificing any performance.
+
+The other thing I was proud of what read Armin's post about stream processing and realizing that my structure is so good it wouldn't be too hard to support it as long as I could implement the
+iterator interface.
