@@ -1,10 +1,9 @@
 package json
 
 import (
+	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 type TestCase struct {
@@ -42,7 +41,7 @@ func TestLoad(t *testing.T) {
 				"k5":   true,
 				"k6":   false,
 				"k\t6": nil,
-				"k7":   123456.0,
+				"k7":   int64(123456),
 			},
 		},
 	}
@@ -81,10 +80,12 @@ func TestLoadString(t *testing.T) {
 		{[]byte(`"Key"   `), "Key"},
 		{[]byte(`"abc\t123"   `), "abc\t123"},
 		{[]byte(`"abc\n123"`), "abc\n123"},
-		// {[]byte(`"she said \"a\""`), "she said \"a\""},
+		{[]byte(`"\""`), "\""},
+		{[]byte(`"she said \"a\""`), "she said \"a\""},
 		{[]byte(`"\\"`), "\\"},
-		// {[]byte(`"abc\123"`), "abc\\123"},
+		{[]byte(`"abc\\123"`), "abc\\123"},
 		{[]byte(`"\u1234"`), "ሴ"},
+		{[]byte(`"        "`), "        "},
 	}
 	for _, testcase := range testCases {
 		iter := &iterator{s: testcase.input}
@@ -97,8 +98,8 @@ func TestLoadString(t *testing.T) {
 
 func TestLoadNumber(t *testing.T) {
 	testCases := []TestCase{
-		{[]byte(`123`), 123.0},
-		{[]byte(`-123`), -123.0},
+		{[]byte(`123.0`), 123.0},
+		{[]byte(`-123.0`), -123.0},
 		{[]byte(`-123.123`), -123.123},
 		{[]byte(`0.234`), 0.234},
 		{[]byte(`1.234e2`), 123.4},
@@ -111,6 +112,18 @@ func TestLoadNumber(t *testing.T) {
 		if !floatEquals(output.(float64), testcase.expectedOutput.(float64)) {
 			t.Errorf("Expected loadNumber(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 		}
+	}
+
+	assert := assert.New(t)
+
+	testCases = []TestCase{
+		{[]byte(`123`), int64(123)},
+		{[]byte(`-123`), int64(-123)},
+	}
+	for _, testcase := range testCases {
+		iter := &iterator{s: testcase.input}
+		output := loadNumber(iter)
+		assert.Equal(testcase.expectedOutput, output)
 	}
 }
 
@@ -133,8 +146,8 @@ func TestLoadSequence(t *testing.T) {
 	}
 	for _, testcase := range testCases {
 		iter := &iterator{s: testcase.input}
-		output := loadSequence(iter)
-		assert.Equal(testcase.expectedOutput, output, "Expected loadSequence(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
+		output := loadArray(iter)
+		assert.Equal(testcase.expectedOutput, output, "Expected loadArray(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 	}
 }
 
@@ -148,8 +161,8 @@ func TestLoadMapping(t *testing.T) {
 	}
 	for _, testcase := range testCases {
 		iter := &iterator{s: testcase.input}
-		output := loadMapping(iter)
-		assert.Equal(testcase.expectedOutput, output, "Expected loadMapping(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
+		output := loadObject(iter)
+		assert.Equal(testcase.expectedOutput, output, "Expected loadObject(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 	}
 }
 
@@ -162,7 +175,7 @@ func TestConsumeSpaces(t *testing.T) {
 	}
 	for _, testcase := range testCases {
 		iter := &iterator{s: testcase.input}
-		iter.AdvancePassWhiteSpace()
+		iter.AdvancePastAllWhiteSpace()
 		assert.Equal(testcase.expectedOutput, iter.Offset, "Expected consumeWhiteSpace(%v) to be %d but got %d", iter, testcase.expectedOutput, iter.Offset)
 	}
 }

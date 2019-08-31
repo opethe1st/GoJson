@@ -7,6 +7,13 @@ with open('array_of_int.json', 'w') as file:
         )
     )
 
+with open('array_of_floats.json', 'w') as file:
+    file.write(
+        json.dumps(
+            [123312.12243e5 for _ in range(100000)]
+        )
+    )
+
 
 with open('map_of_string.json', 'w') as file:
     file.write(
