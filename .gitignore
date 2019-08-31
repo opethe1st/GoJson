@@ -1,2 +1,9 @@
 .vscode/
 .DS_Store
+
+
+# Go
+coverage.out
+trace.out
+json.test
+cpu.out

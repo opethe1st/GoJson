@@ -23,6 +23,9 @@ func (iter *iterator) HasNext() bool {
 }
 
 func (iter *iterator) Slice(start int, end int) []byte {
+	if end > len(iter.s){
+		end = len(iter.s)
+	}
 	return iter.s[start:end]
 }
 
@@ -47,7 +50,8 @@ func (iter *iterator) Next() {
 }
 
 func (iter *iterator) AdvancePastAllWhiteSpace() {
-	for ; isSpace(iter.Current()); iter.Next() {
+	for isSpace(iter.Current()) {
+		iter.Next()
 	}
 }
 

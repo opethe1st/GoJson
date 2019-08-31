@@ -13,7 +13,7 @@ func BenchmarkMyMapOfString(b *testing.B) {
 		panic(err)
 	}
 
-	Load(str)
+	Unmarshall(str)
 }
 
 func BenchmarkMapOfString(b *testing.B) {
@@ -34,7 +34,7 @@ func BenchmarkMyArrayOfInt(b *testing.B) {
 		panic(err)
 	}
 
-	Load(str)
+	Unmarshall(str)
 }
 func BenchmarkArrayOfInt(b *testing.B) {
 	b.ReportAllocs()
@@ -56,7 +56,7 @@ func BenchmarkMyArrayOfString(b *testing.B) {
 		panic(err)
 	}
 
-	Load(str)
+	Unmarshall(str)
 }
 func BenchmarkArrayOfString(b *testing.B) {
 	b.ReportAllocs()
@@ -76,7 +76,7 @@ func BenchmarkMyBigString(b *testing.B) {
 		panic(err)
 	}
 
-	Load(str)
+	Unmarshall(str)
 }
 func BenchmarkBigString(b *testing.B) {
 	b.ReportAllocs()
@@ -96,7 +96,7 @@ func BenchmarkMyCodejson(b *testing.B) {
 		panic(err)
 	}
 
-	Load(str)
+	Unmarshall(str)
 }
 func BenchmarkCodejson(b *testing.B) {
 	b.ReportAllocs()
@@ -116,7 +116,7 @@ func BenchmarkMyNestedJson(b *testing.B) {
 		panic(err)
 	}
 
-	Load(str)
+	Unmarshall(str)
 }
 func BenchmarkNestedJson(b *testing.B) {
 	b.ReportAllocs()
