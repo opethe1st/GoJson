@@ -9,10 +9,10 @@ import (
 	"unicode"
 )
 
-// Load is used load an object from a string - should I have called it Unmarshal to be consistent?
+// Load is used load an object from a string
 func Load(s []byte) interface{} {
-	iter := &iterator{s: s}
-	return load(iter)
+	// - should I have called it Unmarshal to be consistent?
+	return load(&iterator{s: s})
 }
 
 func load(iter *iterator) interface{} {
@@ -99,12 +99,11 @@ func loadNumber(iter *iterator) interface{} {
 	return intValue
 }
 
-func loadString(iter *iterator) string {
-	var str string
+func loadString(iter *iterator) (str string) {
 	start := iter.Offset
 	iter.AdvancePast('"')
 	if iter.Current() == '"' {
-		return str
+		return
 	}
 	for iter.HasNext() && iter.Current() != '"' {
 		if iter.Current() == '\\' {
@@ -122,7 +121,7 @@ func loadString(iter *iterator) string {
 	if err != nil {
 		panic(errorMsg(iter, "There was an error unquoting this %s", string(iter.SliceTillOffset(start))))
 	}
-	return str
+	return
 }
 
 func loadArray(iter *iterator) []interface{} {

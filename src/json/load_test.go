@@ -81,6 +81,7 @@ func TestLoadKeyword(t *testing.T) {
 func TestLoadString(t *testing.T) {
 	assert := assert.New(t) // redefinition here -- ugly!
 	testCases := []TestCase{
+		{"Empty String", []byte(`""`), ""},
 		{"Simple String", []byte(`"Key"`), "Key"},
 		{"String with space at the beginning", []byte(`"   Key"`), "   Key"},
 		{"String with space after it", []byte(`"Key"   `), "Key"},
@@ -166,7 +167,7 @@ func TestLoadArray(t *testing.T) {
 				iter := &iterator{s: testcase.input}
 				output := loadArray(iter)
 				assert.Equal(testcase.expectedOutput, output, "Expected loadArray(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
-			}
+			},
 		)
 	}
 }
@@ -186,7 +187,7 @@ func TestLoadObject(t *testing.T) {
 				iter := &iterator{s: testcase.input}
 				output := loadObject(iter)
 				assert.Equal(testcase.expectedOutput, output, "Expected loadObject(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
-			}
+			},
 		)
 	}
 }

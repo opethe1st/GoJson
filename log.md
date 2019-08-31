@@ -58,3 +58,9 @@ At this point where I am really proud of what I have written. It is nice and cle
 
 The other thing I was proud of what read Armin's post about stream processing and realizing that my structure is so good it wouldn't be too hard to support it as long as I could implement the
 iterator interface.
+
+
+Wow. I just took a peek at the VsCode debugger docs and Wow.
+
+The case against adding AdvancePast and AdvancePastWhiteSpace - now when I declare the interface, I include two methods that are there for convenience and not part of the basis operation (by this I mean,
+they can be implemented in terms of other operations)

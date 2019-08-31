@@ -3,4 +3,5 @@
 
 
 # Go
-cover.out
+coverage.out
+trace.out

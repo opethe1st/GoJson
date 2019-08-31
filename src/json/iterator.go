@@ -47,7 +47,8 @@ func (iter *iterator) Next() {
 }
 
 func (iter *iterator) AdvancePastAllWhiteSpace() {
-	for ; isSpace(iter.Current()); iter.Next() {
+	for isSpace(iter.Current()) {
+		iter.Next()
 	}
 }
 
