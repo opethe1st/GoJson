@@ -9,13 +9,15 @@ import (
 	"unicode"
 )
 
+// Any is an alias for interface{}
+type Any = interface{}
+
 // Unmarshall is used load an object from a string
-func Unmarshall(s []byte) interface{} {
-	// - should I have called it Unmarshal to be consistent?
+func Unmarshall(s []byte) Any {
 	return unmarshall(&iterator{s: s})
 }
 
-func unmarshall(iter *iterator) interface{} {
+func unmarshall(iter *iterator) Any {
 	iter.AdvancePastAllWhiteSpace()
 	switch {
 	case iter.Current() == 'n':
@@ -38,7 +40,7 @@ func unmarshall(iter *iterator) interface{} {
 	}
 }
 
-func unmarshallKeyword(iter *iterator, keyword string, value interface{}) interface{} {
+func unmarshallKeyword(iter *iterator, keyword string, value Any) Any {
 	for _, val := range keyword {
 		if rune(iter.Current()) != val {
 			panic(errorMsg(iter, "There was an error while reading in %s", keyword))
@@ -56,7 +58,7 @@ func isNumber(iter *iterator) bool {
 	return false
 }
 
-func unmarshallNumber(iter *iterator) interface{} {
+func unmarshallNumber(iter *iterator) Any {
 	start := iter.Offset
 	isFloat := false
 	if (iter.Current() == '-') || (iter.Current() == '+') {
@@ -124,14 +126,14 @@ func unmarshallString(iter *iterator) (str string) {
 	return
 }
 
-func unmarshallArray(iter *iterator) []interface{} {
-	array := make([]interface{}, 0)
+func unmarshallArray(iter *iterator) []Any {
+	array := make([]Any, 0)
 	iter.AdvancePast('[')
 	if iter.Current() == ']' {
-		iter.AdvancePast(']')
+		iter.Next()
 		return array
 	}
-	var item interface{}
+	var item Any
 	for iter.HasNext() {
 		item = unmarshall(iter)
 		array = append(array, item)
@@ -146,14 +148,14 @@ func unmarshallArray(iter *iterator) []interface{} {
 	return array
 }
 
-func unmarshallObject(iter *iterator) map[string]interface{} {
-	object := make(map[string]interface{}, 0)
+func unmarshallObject(iter *iterator) map[string]Any {
+	object := make(map[string]Any, 0)
 	iter.AdvancePast('{')
 	if iter.Current() == '}' {
-		iter.AdvancePast('}')
+		iter.Next()
 		return object
 	}
-	var key, value interface{}
+	var key, value Any
 	for iter.HasNext() {
 		key = unmarshall(iter)
 		iter.AdvancePast(':')
