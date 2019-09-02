@@ -5,32 +5,32 @@ package json
 // after calling s.Len() - s.len should equal len(s)
 type iterator struct {
 	s      []byte
-	Offset int
+	Cursor int
 	len    int
 }
 
 // Selectors
 
 func (iter *iterator) Current() byte {
-	if iter.Offset < len(iter.s) {
-		return iter.s[iter.Offset]
+	if iter.Cursor < len(iter.s) {
+		return iter.s[iter.Cursor]
 	}
 	return 0
 }
 
 func (iter *iterator) HasNext() bool {
-	return iter.Offset < len(iter.s)
+	return iter.Cursor < len(iter.s)
 }
 
 func (iter *iterator) Slice(start int, end int) []byte {
-	if end > len(iter.s){
+	if end > len(iter.s) {
 		end = len(iter.s)
 	}
 	return iter.s[start:end]
 }
 
 func (iter *iterator) SliceTillOffset(start int) []byte {
-	return iter.s[start:iter.Offset]
+	return iter.s[start:iter.Cursor]
 }
 
 func (iter *iterator) Len() int {
@@ -46,7 +46,9 @@ func (iter *iterator) Len() int {
 
 func (iter *iterator) Next() {
 	// I could have called this Advance to be consistent wih AdvancePast etc
-	iter.Offset++
+	if iter.Cursor < iter.Len() {
+		iter.Cursor++
+	}
 }
 
 func (iter *iterator) AdvancePastAllWhiteSpace() {

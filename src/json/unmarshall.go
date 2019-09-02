@@ -59,7 +59,7 @@ func isNumber(iter *iterator) bool {
 }
 
 func unmarshallNumber(iter *iterator) Any {
-	start := iter.Offset
+	start := iter.Cursor
 	isFloat := false
 	if (iter.Current() == '-') || (iter.Current() == '+') {
 		iter.Next()
@@ -102,7 +102,7 @@ func unmarshallNumber(iter *iterator) Any {
 }
 
 func unmarshallString(iter *iterator) (str string) {
-	start := iter.Offset
+	start := iter.Cursor
 	iter.AdvancePast('"')
 	if iter.Current() == '"' {
 		return
@@ -119,7 +119,7 @@ func unmarshallString(iter *iterator) (str string) {
 		}
 	}
 	iter.AdvancePast('"')
-	str, err := strconv.Unquote(string(iter.Slice(start, iter.Offset)))
+	str, err := strconv.Unquote(string(iter.Slice(start, iter.Cursor)))
 	if err != nil {
 		panic(errorMsg(iter, "There was an error unquoting this %s", string(iter.SliceTillOffset(start))))
 	}
