@@ -12,7 +12,7 @@ type iterator struct {
 // Selectors
 
 func (iter *iterator) Cursor() int {
-	// this is just so it clear that cursor is readOnly. 
+	// this is just so it clear that cursor is readOnly.
 	return iter.cursor
 }
 func (iter *iterator) Current() byte {
