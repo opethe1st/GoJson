@@ -16,7 +16,8 @@ jobs:
                       mkdir -p /tmp/artifacts
             - run: go get -v -t -d ./...
             - run: go vet ./...
-            - run: "! go fmt ./... 2>&1 | read"
+            - run: gofmt -d . > /tmp/artifacts/fmt-diff # shows the diff
+            - run: "[ ! -s /tmp/artifacts/fmt-diff ]" # if this file exists and is not empty, status code is 1
             - run: go test -v ./...
             - run:
                 command: |
