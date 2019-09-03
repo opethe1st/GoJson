@@ -29,7 +29,7 @@ func (iter *iterator) Slice(start int, end int) []byte {
 	return iter.s[start:end]
 }
 
-func (iter *iterator) SliceTillOffset(start int) []byte {
+func (iter *iterator) SliceTillCursor(start int) []byte {
 	return iter.s[start:iter.Cursor]
 }
 

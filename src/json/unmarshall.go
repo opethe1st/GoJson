@@ -86,7 +86,7 @@ func unmarshallNumber(iter *iterator) Any {
 	}
 
 	if isFloat {
-		floatValue, err := strconv.ParseFloat(string(iter.SliceTillOffset(start)), 64)
+		floatValue, err := strconv.ParseFloat(string(iter.SliceTillCursor(start)), 64)
 		if err != nil {
 			panic(errorMsg(iter, "This error %s occurred while trying to parse a number", err))
 		} else {
@@ -94,7 +94,7 @@ func unmarshallNumber(iter *iterator) Any {
 		}
 	}
 
-	intValue, err := strconv.ParseInt(string(iter.SliceTillOffset(start)), 10, 64)
+	intValue, err := strconv.ParseInt(string(iter.SliceTillCursor(start)), 10, 64)
 	if err != nil {
 		panic(errorMsg(iter, "This error %s occurred while trying to parse a number", err))
 	}
@@ -119,9 +119,9 @@ func unmarshallString(iter *iterator) (str string) {
 		}
 	}
 	iter.AdvancePast('"')
-	str, err := strconv.Unquote(string(iter.Slice(start, iter.Cursor)))
+	str, err := strconv.Unquote(string(iter.SliceTillCursor(start)))
 	if err != nil {
-		panic(errorMsg(iter, "There was an error unquoting this %s", string(iter.SliceTillOffset(start))))
+		panic(errorMsg(iter, "There was an error unquoting this %s", string(iter.SliceTillCursor(start))))
 	}
 	return
 }
