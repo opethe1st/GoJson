@@ -77,7 +77,7 @@ func TestUnmarshall(t *testing.T) {
 // 	}
 
 // 	myValue := myJson.Unmarshall(str)
-	// apparently this takes forever to run. Crazy!
-	// and they are not the same, does this mean there is a problem with my implementation?
-	// assert.Equal(value, myValue)
+// apparently this takes forever to run. Crazy!
+// and they are not the same, does this mean there is a problem with my implementation?
+// assert.Equal(value, myValue)
 // }
