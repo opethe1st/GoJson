@@ -59,7 +59,7 @@ func isNumber(iter *iterator) bool {
 }
 
 func unmarshallNumber(iter *iterator) Any {
-	start := iter.Cursor
+	start := iter.Cursor()
 	isFloat := false
 	if (iter.Current() == '-') || (iter.Current() == '+') {
 		iter.Next()
@@ -102,7 +102,7 @@ func unmarshallNumber(iter *iterator) Any {
 }
 
 func unmarshallString(iter *iterator) (str string) {
-	start := iter.Cursor
+	start := iter.Cursor()
 	iter.AdvancePast('"')
 	if iter.Current() == '"' {
 		return

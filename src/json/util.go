@@ -6,21 +6,21 @@ import (
 )
 
 func errorMsg(iter *iterator, msg string, msgArgs ...interface{}) string {
-	startBefore := iter.Cursor - 50
+	startBefore := iter.Cursor() - 50
 	if startBefore < 0 {
 		startBefore = 0
 	}
-	endBefore := iter.Cursor
+	endBefore := iter.Cursor()
 	if endBefore < 0 {
 		endBefore = 0
 	}
 	before := iter.Slice(startBefore, endBefore)
 
-	startAfter := iter.Cursor + 1
+	startAfter := iter.Cursor() + 1
 	if startAfter > iter.Len() {
 		startAfter = iter.Len()
 	}
-	endAfter := iter.Cursor + 50
+	endAfter := iter.Cursor() + 50
 	if endAfter > iter.Len() {
 		endAfter = iter.Len()
 	}
