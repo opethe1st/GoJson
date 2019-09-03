@@ -9,13 +9,15 @@ import (
 	"unicode"
 )
 
+// Any is an alias for interface{}
+type Any = interface{}
+
 // Unmarshall is used load an object from a string
-func Unmarshall(s []byte) interface{} {
-	// - should I have called it Unmarshal to be consistent?
+func Unmarshall(s []byte) Any {
 	return unmarshall(&iterator{s: s})
 }
 
-func unmarshall(iter *iterator) interface{} {
+func unmarshall(iter *iterator) Any {
 	iter.AdvancePastAllWhiteSpace()
 	switch {
 	case iter.Current() == 'n':
@@ -38,7 +40,7 @@ func unmarshall(iter *iterator) interface{} {
 	}
 }
 
-func unmarshallKeyword(iter *iterator, keyword string, value interface{}) interface{} {
+func unmarshallKeyword(iter *iterator, keyword string, value Any) Any {
 	for _, val := range keyword {
 		if rune(iter.Current()) != val {
 			panic(errorMsg(iter, "There was an error while reading in %s", keyword))
@@ -56,8 +58,8 @@ func isNumber(iter *iterator) bool {
 	return false
 }
 
-func unmarshallNumber(iter *iterator) interface{} {
-	start := iter.Offset
+func unmarshallNumber(iter *iterator) Any {
+	start := iter.Cursor()
 	isFloat := false
 	if (iter.Current() == '-') || (iter.Current() == '+') {
 		iter.Next()
@@ -84,7 +86,7 @@ func unmarshallNumber(iter *iterator) interface{} {
 	}
 
 	if isFloat {
-		floatValue, err := strconv.ParseFloat(string(iter.SliceTillOffset(start)), 64)
+		floatValue, err := strconv.ParseFloat(string(iter.SliceTillCursor(start)), 64)
 		if err != nil {
 			panic(errorMsg(iter, "This error %s occurred while trying to parse a number", err))
 		} else {
@@ -92,7 +94,7 @@ func unmarshallNumber(iter *iterator) interface{} {
 		}
 	}
 
-	intValue, err := strconv.ParseInt(string(iter.SliceTillOffset(start)), 10, 64)
+	intValue, err := strconv.ParseInt(string(iter.SliceTillCursor(start)), 10, 64)
 	if err != nil {
 		panic(errorMsg(iter, "This error %s occurred while trying to parse a number", err))
 	}
@@ -100,7 +102,7 @@ func unmarshallNumber(iter *iterator) interface{} {
 }
 
 func unmarshallString(iter *iterator) (str string) {
-	start := iter.Offset
+	start := iter.Cursor()
 	iter.AdvancePast('"')
 	if iter.Current() == '"' {
 		return
@@ -117,21 +119,21 @@ func unmarshallString(iter *iterator) (str string) {
 		}
 	}
 	iter.AdvancePast('"')
-	str, err := strconv.Unquote(string(iter.Slice(start, iter.Offset)))
+	str, err := strconv.Unquote(string(iter.SliceTillCursor(start)))
 	if err != nil {
-		panic(errorMsg(iter, "There was an error unquoting this %s", string(iter.SliceTillOffset(start))))
+		panic(errorMsg(iter, "There was an error unquoting this %s", string(iter.SliceTillCursor(start))))
 	}
 	return
 }
 
-func unmarshallArray(iter *iterator) []interface{} {
-	array := make([]interface{}, 0)
+func unmarshallArray(iter *iterator) []Any {
+	array := make([]Any, 0)
 	iter.AdvancePast('[')
 	if iter.Current() == ']' {
-		iter.AdvancePast(']')
+		iter.Next()
 		return array
 	}
-	var item interface{}
+	var item Any
 	for iter.HasNext() {
 		item = unmarshall(iter)
 		array = append(array, item)
@@ -146,14 +148,14 @@ func unmarshallArray(iter *iterator) []interface{} {
 	return array
 }
 
-func unmarshallObject(iter *iterator) map[string]interface{} {
-	object := make(map[string]interface{}, 0)
+func unmarshallObject(iter *iterator) map[string]Any {
+	object := make(map[string]Any, 0)
 	iter.AdvancePast('{')
 	if iter.Current() == '}' {
-		iter.AdvancePast('}')
+		iter.Next()
 		return object
 	}
-	var key, value interface{}
+	var key, value Any
 	for iter.HasNext() {
 		key = unmarshall(iter)
 		iter.AdvancePast(':')

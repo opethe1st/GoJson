@@ -8,7 +8,7 @@ import (
 type TestCase struct {
 	name           string
 	input          []byte
-	expectedOutput interface{}
+	expectedOutput Any
 }
 
 func TestLoad(t *testing.T) {
@@ -31,11 +31,11 @@ func TestLoad(t *testing.T) {
 				"k6": false,
 				"k	6": null,
 				"k7": 123456
-			}`), map[string]interface{}{
+			}`), map[string]Any{
 				"k1": "v1",
-				"k2": []interface{}{"v2"},
-				"k3": map[string]interface{}{
-					"k4": []interface{}{"v1"},
+				"k2": []Any{"v2"},
+				"k3": map[string]Any{
+					"k4": []Any{"v1"},
 					"k5": "v2",
 				},
 				"k4":   nil,
@@ -59,7 +59,7 @@ func TestLoadKeyword(t *testing.T) {
 		name    string
 		input   []byte
 		keyword string
-		value   interface{}
+		value   Any
 	}{
 		{"Null", []byte(`null`), `null`, nil},
 		{"True", []byte(`true`), `true`, true},
@@ -153,12 +153,12 @@ func TestLoadNumber(t *testing.T) {
 func TestLoadArray(t *testing.T) {
 	assert := assert.New(t)
 	testCases := []TestCase{
-		{"Empty Array", []byte(`[]`), make([]interface{}, 0)},
-		{"Array with a single value", []byte(`["value"]`), []interface{}{"value"}},
-		{"Array with mor than one value", []byte(`["v1", "v2", "v3"]`), []interface{}{"v1", "v2", "v3"}},
-		{"Nested array of depth 2", []byte(`["v1", ["v2", "v3"]]`), []interface{}{"v1", []interface{}{"v2", "v3"}}},
-		{"Nested array of depth 3", []byte(`["v1", ["v2", ["v3"]]]`), []interface{}{"v1", []interface{}{"v2", []interface{}{"v3"}}}},
-		{"Array that has an object", []byte(`["v1", {"v2": "v3"}]`), []interface{}{"v1", map[string]interface{}{"v2": "v3"}}},
+		{"Empty Array", []byte(`[]`), make([]Any, 0)},
+		{"Array with a single value", []byte(`["value"]`), []Any{"value"}},
+		{"Array with mor than one value", []byte(`["v1", "v2", "v3"]`), []Any{"v1", "v2", "v3"}},
+		{"Nested array of depth 2", []byte(`["v1", ["v2", "v3"]]`), []Any{"v1", []Any{"v2", "v3"}}},
+		{"Nested array of depth 3", []byte(`["v1", ["v2", ["v3"]]]`), []Any{"v1", []Any{"v2", []Any{"v3"}}}},
+		{"Array that has an object", []byte(`["v1", {"v2": "v3"}]`), []Any{"v1", map[string]Any{"v2": "v3"}}},
 	}
 	for _, testcase := range testCases {
 		t.Run(
@@ -175,10 +175,10 @@ func TestLoadArray(t *testing.T) {
 func TestLoadObject(t *testing.T) {
 	assert := assert.New(t)
 	testCases := []TestCase{
-		{"Empty object", []byte(`{}`), make(map[string]interface{}, 0)},
-		{"Object with one item", []byte(`{"key": "value"}`), map[string]interface{}{"key": "value"}},
-		{"Object with two items", []byte(`{"k1": "v1", "k2":"v2"}`), map[string]interface{}{"k1": "v1", "k2": "v2"}},
-		{"Object with array value", []byte(`{"v1": ["v2", "v3"]}`), map[string]interface{}{"v1": []interface{}{"v2", "v3"}}},
+		{"Empty object", []byte(`{}`), make(map[string]Any, 0)},
+		{"Object with one item", []byte(`{"key": "value"}`), map[string]Any{"key": "value"}},
+		{"Object with two items", []byte(`{"k1": "v1", "k2":"v2"}`), map[string]Any{"k1": "v1", "k2": "v2"}},
+		{"Object with array value", []byte(`{"v1": ["v2", "v3"]}`), map[string]Any{"v1": []Any{"v2", "v3"}}},
 	}
 	for _, testcase := range testCases {
 		t.Run(
