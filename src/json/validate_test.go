@@ -9,5 +9,5 @@ import (
 func TestValidate(t *testing.T) {
 	assert := assert.New(t)
 	err := Validate(`["k1","value"`)
-	assert.Equal(nil, err)
+	assert.Equal(ValidationError{msg:"Was expecting ',' but we are at the end"}, err)
 }
