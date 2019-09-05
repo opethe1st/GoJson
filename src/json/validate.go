@@ -16,15 +16,17 @@ func (e ValidationError) Error() string {
 }
 
 // Validate a json string
-func Validate(s string) error {
-	iter := iterator{s: []byte(s)}
+func Validate(s []byte) error {
+	iter := iterator{s: s}
 	err := validate(&iter)
 	if err != nil {
 		return err
 	}
 	iter.AdvancePastAllWhiteSpace()
 	if iter.Cursor() != iter.Len() {
-		return ValidationError{msg: "Extraneous characters at the end"}
+		// Should I make the constructor for this?
+		// should it have access to the position?
+		return ValidationError{msg: "Extraneous values at the end of the string"}
 	}
 	return nil
 }
@@ -47,7 +49,7 @@ func validate(iter *iterator) error {
 	case iter.Current() == '{':
 		return validateObject(iter)
 	default:
-		return ValidationError{msg: "Unknown value"}
+		return ValidationError{msg: fmt.Sprintf("Unknown value at %d", iter.Cursor())}
 	}
 }
 
@@ -56,14 +58,31 @@ func validateKeyword(iter *iterator, literal string) error {
 		if rune(iter.Current()) != char {
 			return ValidationError{msg: fmt.Sprintf("Error when trying to unmarshall '%v'", literal)}
 		}
+		iter.Next()
 	}
 	return nil
 }
 
 func validateNumber(iter *iterator) error {
-	// move this block to a func so it can be reused across validation - perhaps have a step before either
-	// that computes certain things before?
 	start := iter.Cursor()
+	isFloat := moveTillEndOfNumber(iter)
+	if isFloat {
+		_, err := strconv.ParseFloat(string(iter.SliceTillCursor(start)), 64)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	_, err := strconv.ParseInt(string(iter.SliceTillCursor(start)), 10, 64)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func moveTillEndOfNumber(iter *iterator) bool {
+	// this is useful for both, validateNumber and unmarshallNumber
 	isFloat := false
 	if (iter.Current() == '-') || (iter.Current() == '+') {
 		iter.Next()
@@ -88,19 +107,7 @@ func validateNumber(iter *iterator) error {
 	for unicode.IsDigit(rune(iter.Current())) {
 		iter.Next()
 	}
-	if isFloat {
-		_, err := strconv.ParseFloat(string(iter.SliceTillCursor(start)), 64)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	_, err := strconv.ParseInt(string(iter.SliceTillCursor(start)), 10, 64)
-	if err != nil {
-		return err
-	}
-	return nil
+	return isFloat
 }
 
 func validateString(iter *iterator) error {
@@ -111,6 +118,10 @@ func validateString(iter *iterator) error {
 		return err
 	}
 	if iter.Current() == '"' {
+		err = iter.AdvancePast('"')
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 	for iter.HasNext() && iter.Current() != '"' {
