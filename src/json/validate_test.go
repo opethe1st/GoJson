@@ -13,7 +13,7 @@ func TestValidate(t *testing.T) {
 		{"Unexpected end of string", []byte(`"k1`), ValidationError{msg: "Was expecting '\"' but we are at the end"}},
 		{"empty array", []byte(`[]`), nil},
 		{"empty dictionary", []byte(`{}`), nil},
-		{"empty string", []byte(`""`), nil,},
+		{"empty string", []byte(`""`), nil},
 		{"standalone number", []byte(`12234`), nil},
 		{"More values at the end", []byte(`"12234", 123`), ValidationError{msg: "Extraneous values at the end of the string"}},
 		{"true", []byte(`true`), nil},
