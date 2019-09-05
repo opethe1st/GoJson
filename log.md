@@ -56,14 +56,12 @@ but boy did it work. It has also be nice to get acquainted with using a debugger
 
 At this point where I am really proud of what I have written. It is nice and clear without sacrificing any performance.
 
-The other thing I was proud of what read Armin's post about stream processing and realizing that my structure is so good it wouldn't be too hard to support it as long as I could implement the
-iterator interface.
+The other thing I was proud of is: I read Armin's post about stream processing and realized that my structure is so good it wouldn't be too hard to support it as long as the streamer could implement the iterator interface.
 
 
 Wow. I just took a peek at the VsCode debugger docs and Wow.
 
-The case against adding AdvancePast and AdvancePastWhiteSpace - now when I declare the interface, I include two methods that are there for convenience and not part of the basis operation (by this I mean,
-they can be implemented in terms of other operations)
+The case against adding AdvancePast and AdvancePastWhiteSpace - now when I declare the interface, I include two methods that are there for convenience and not part of the basis operation (by this I mean, they can be implemented in terms of other operations)
 
 
 Just realised the validate and load are actually two different usecases. Validate can be used with tools that view json to produce useful errors in a UI for example.
@@ -71,3 +69,14 @@ Just realised the validate and load are actually two different usecases. Validat
 Also noticed my implementation is slower even though I don't do the validation step. Why? and it's also puzzling because my loading of strings was 3 times as fast. Was it fast because of the no validation?
 
 Didn't write tests for iterator since it is internal - good thing? I know it is tested because my other stuff is not broken
+
+So I was thinking about the validate vs. unmarshalling and I just realized that perhaps I should be using one function for both.
+The only difference between the two is that one creating resources in memory and the other does not. If I can encapsulate object creation
+(by object, creating arrays, maps, strings) then I am on my way to using a single function. I just need to make appending, adding a key to a map,
+creating a map etc noop when validating.I also realize that they might diverge so maybe two functions with duplication anyways is also good.
+Very interesting thing to consider.
+
+How does my implementation compare memory-wise too?
+I can probably optimise even further.
+
+I should probably have some property based tests too. I think every library that is going to be depended on, should have these kinds of tests.
