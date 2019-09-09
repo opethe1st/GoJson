@@ -21,11 +21,11 @@ func unmarshall(iter *iterator) Any {
 	iter.AdvancePastAllWhiteSpace()
 	switch {
 	case iter.Current() == 'n':
-		return unmarshallKeyword(iter, "null", nil)
+		return unmarshallLiteral(iter, "null", nil)
 	case iter.Current() == 't':
-		return unmarshallKeyword(iter, "true", true)
+		return unmarshallLiteral(iter, "true", true)
 	case iter.Current() == 'f':
-		return unmarshallKeyword(iter, "false", false)
+		return unmarshallLiteral(iter, "false", false)
 	case isNumber(iter):
 		return unmarshallNumber(iter)
 	case iter.Current() == '"':
@@ -40,10 +40,10 @@ func unmarshall(iter *iterator) Any {
 	}
 }
 
-func unmarshallKeyword(iter *iterator, keyword string, value Any) Any {
-	for _, val := range keyword {
+func unmarshallLiteral(iter *iterator, literal string, value Any) Any {
+	for _, val := range literal {
 		if rune(iter.Current()) != val {
-			panic(errorMsg(iter, "There was an error while reading in %s", keyword))
+			panic(errorMsg(iter, "There was an error while reading in %s", literal))
 		}
 		iter.Next()
 	}

@@ -11,54 +11,12 @@ type TestCase struct {
 	expectedOutput Any
 }
 
-func TestLoad(t *testing.T) {
-	assert := assert.New(t)
-
-	testCases := []TestCase{
-		{
-			"Load a complex json",
-			[]byte(`{
-				"k1": "v1",
-				"k2": [
-					"v2"
-				],
-				"k3": {
-					"k4": ["v1"],
-					"k5": "v2"
-				},
-				"k4": null,
-				"k5": true,
-				"k6": false,
-				"k	6": null,
-				"k7": 123456
-			}`), map[string]Any{
-				"k1": "v1",
-				"k2": []Any{"v2"},
-				"k3": map[string]Any{
-					"k4": []Any{"v1"},
-					"k5": "v2",
-				},
-				"k4":   nil,
-				"k5":   true,
-				"k6":   false,
-				"k\t6": nil,
-				"k7":   int64(123456),
-			},
-		},
-	}
-
-	for _, testcase := range testCases {
-		output := Unmarshall(testcase.input)
-		assert.Equal(testcase.expectedOutput, output)
-	}
-}
-
-func TestLoadKeyword(t *testing.T) {
+func TestUnmarshallLiteral(t *testing.T) {
 	assert := assert.New(t)
 	testcases := []struct {
 		name    string
 		input   []byte
-		keyword string
+		literal string
 		value   Any
 	}{
 		{"Null", []byte(`null`), `null`, nil},
@@ -70,15 +28,15 @@ func TestLoadKeyword(t *testing.T) {
 			testcase.name,
 			func(t *testing.T) {
 				iter := &iterator{s: testcase.input}
-				output := unmarshallKeyword(iter, testcase.keyword, testcase.value)
-				assert.Equal(testcase.value, output, "Expected loadKeyword(%v, %v, %v) to be %v but got %v", iter, testcase.keyword, testcase.value, testcase.value, output)
+				output := unmarshallLiteral(iter, testcase.literal, testcase.value)
+				assert.Equal(testcase.value, output, "Expected UnmarshallKeyword(%v, %v, %v) to be %v but got %v", iter, testcase.literal, testcase.value, testcase.value, output)
 			},
 		)
 	}
 
 }
 
-func TestLoadString(t *testing.T) {
+func TestUnmarshallString(t *testing.T) {
 	assert := assert.New(t) // redefinition here -- ugly!
 	testCases := []TestCase{
 		{"Empty String", []byte(`""`), ""},
@@ -100,7 +58,7 @@ func TestLoadString(t *testing.T) {
 			func(t *testing.T) {
 				iter := &iterator{s: testcase.input}
 				output := unmarshallString(iter)
-				assert.Equal(testcase.expectedOutput, output, "Expected loadNumber(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
+				assert.Equal(testcase.expectedOutput, output, "Expected UnmarshallNumber(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 			},
 		)
 
@@ -108,7 +66,7 @@ func TestLoadString(t *testing.T) {
 
 }
 
-func TestLoadNumber(t *testing.T) {
+func TestUnmarshallNumber(t *testing.T) {
 	testCases := []TestCase{
 		{"Float with 0 decimal", []byte(`123.0`), 123.0},
 		{"Float with + sign", []byte(`+123.0`), 123.0},
@@ -126,7 +84,7 @@ func TestLoadNumber(t *testing.T) {
 				iter := &iterator{s: testcase.input}
 				output := unmarshallNumber(iter)
 				if !floatEquals(output.(float64), testcase.expectedOutput.(float64)) {
-					t.Errorf("Expected loadNumber(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
+					t.Errorf("Expected UnmarshallNumber(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 				}
 			},
 		)
@@ -150,7 +108,7 @@ func TestLoadNumber(t *testing.T) {
 	}
 }
 
-func TestLoadArray(t *testing.T) {
+func TestUnmarshallArray(t *testing.T) {
 	assert := assert.New(t)
 	testCases := []TestCase{
 		{"Empty Array", []byte(`[]`), make([]Any, 0)},
@@ -166,13 +124,13 @@ func TestLoadArray(t *testing.T) {
 			func(t *testing.T) {
 				iter := &iterator{s: testcase.input}
 				output := unmarshallArray(iter)
-				assert.Equal(testcase.expectedOutput, output, "Expected loadArray(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
+				assert.Equal(testcase.expectedOutput, output, "Expected UnmarshallArray(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 			},
 		)
 	}
 }
 
-func TestLoadObject(t *testing.T) {
+func TestUnmarshallObject(t *testing.T) {
 	assert := assert.New(t)
 	testCases := []TestCase{
 		{"Empty object", []byte(`{}`), make(map[string]Any, 0)},
@@ -186,7 +144,7 @@ func TestLoadObject(t *testing.T) {
 			func(t *testing.T) {
 				iter := &iterator{s: testcase.input}
 				output := unmarshallObject(iter)
-				assert.Equal(testcase.expectedOutput, output, "Expected loadObject(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
+				assert.Equal(testcase.expectedOutput, output, "Expected UnmarshallObject(%v) to be %v but got %v", iter, testcase.expectedOutput, output)
 			},
 		)
 	}
