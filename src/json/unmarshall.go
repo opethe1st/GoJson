@@ -9,15 +9,12 @@ import (
 	"unicode"
 )
 
-// Any is an alias for interface{}
-type Any = interface{}
-
 // Unmarshall is used load an object from a string
-func Unmarshall(s []byte) Any {
+func Unmarshall(s []byte) any {
 	return unmarshall(&iterator{s: s})
 }
 
-func unmarshall(iter *iterator) Any {
+func unmarshall(iter *iterator) any {
 	iter.AdvancePastAllWhiteSpace()
 	switch {
 	case iter.Current() == 'n':
@@ -40,7 +37,7 @@ func unmarshall(iter *iterator) Any {
 	}
 }
 
-func unmarshallLiteral(iter *iterator, literal string, value Any) Any {
+func unmarshallLiteral(iter *iterator, literal string, value any) any {
 	for _, val := range literal {
 		if rune(iter.Current()) != val {
 			panic(errorMsg(iter, "There was an error while reading in %s", literal))
@@ -58,7 +55,7 @@ func isNumber(iter *iterator) bool {
 	return false
 }
 
-func unmarshallNumber(iter *iterator) Any {
+func unmarshallNumber(iter *iterator) any {
 	start := iter.Cursor()
 	isFloat := false
 	if (iter.Current() == '-') || (iter.Current() == '+') {
@@ -126,9 +123,9 @@ func unmarshallString(iter *iterator) (str string) {
 	return
 }
 
-func unmarshallArray(iter *iterator) []Any {
+func unmarshallArray(iter *iterator) []any {
 	var err error
-	array := make([]Any, 0)
+	array := make([]any, 0)
 	err = iter.AdvancePast('[')
 	if err != nil {
 		panic(err)
@@ -138,7 +135,7 @@ func unmarshallArray(iter *iterator) []Any {
 		iter.Next()
 		return array
 	}
-	var item Any
+	var item any
 	for iter.HasNext() {
 		item = unmarshall(iter)
 		array = append(array, item)
@@ -152,10 +149,10 @@ func unmarshallArray(iter *iterator) []Any {
 	return array
 }
 
-func unmarshallObject(iter *iterator) map[string]Any {
+func unmarshallObject(iter *iterator) map[string]any {
 	var err error
 
-	object := make(map[string]Any, 0)
+	object := make(map[string]any, 0)
 	err = iter.AdvancePast('{')
 	if err != nil {
 		panic(err)
@@ -166,7 +163,7 @@ func unmarshallObject(iter *iterator) map[string]Any {
 	}
 	var (
 		key   string
-		value Any
+		value any
 	)
 	for iter.HasNext() {
 		iter.AdvancePastAllWhiteSpace()

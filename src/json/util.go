@@ -5,6 +5,8 @@ import (
 	"math"
 )
 
+type any = interface{}
+
 func errorMsg(iter *iterator, msg string, msgArgs ...interface{}) string {
 	startBefore := iter.Cursor() - 50
 	if startBefore < 0 {

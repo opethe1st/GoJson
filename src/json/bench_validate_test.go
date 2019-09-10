@@ -14,11 +14,11 @@ func Benchmark_Validate_NestedJson(b *testing.B) {
 	}
 	b.StartTimer()
 
-	var any Any
+	var capture any
 	for n := 0; n < b.N; n++ {
-		any = Validate(str)
+		capture = Validate(str)
 	}
-	res = any
+	res = capture
 }
 
 func Benchmark_Validate_NestedJsonStdlib(b *testing.B) {
@@ -29,9 +29,9 @@ func Benchmark_Validate_NestedJsonStdlib(b *testing.B) {
 		panic(err)
 	}
 
-	var any Any
+	var capture any
 	for n := 0; n < b.N; n++ {
-		any = json.Valid(str)
+		capture = json.Valid(str)
 	}
-	res = any
+	res = capture
 }
