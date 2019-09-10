@@ -80,3 +80,8 @@ How does my implementation compare memory-wise too?
 I can probably optimise even further.
 
 I should probably have some property based tests too. I think every library that is going to be depended on, should have these kinds of tests.
+
+
+I should have dealt with whitespace better, by having a stream that takes in
+the characters and remove extraneous whitespace.
+

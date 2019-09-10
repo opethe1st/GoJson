@@ -127,8 +127,13 @@ func unmarshallString(iter *iterator) (str string) {
 }
 
 func unmarshallArray(iter *iterator) []Any {
+	var err error
 	array := make([]Any, 0)
-	iter.AdvancePast('[')
+	err = iter.AdvancePast('[')
+	if err != nil {
+		panic(err)
+	}
+
 	if iter.Current() == ']' {
 		iter.Next()
 		return array
@@ -142,34 +147,51 @@ func unmarshallArray(iter *iterator) []Any {
 			break
 		}
 		iter.AdvancePast(',')
-		iter.AdvancePastAllWhiteSpace()
 	}
 	iter.AdvancePast(']')
 	return array
 }
 
 func unmarshallObject(iter *iterator) map[string]Any {
+	var err error
+
 	object := make(map[string]Any, 0)
-	iter.AdvancePast('{')
+	err = iter.AdvancePast('{')
+	if err != nil {
+		panic(err)
+	}
 	if iter.Current() == '}' {
 		iter.Next()
 		return object
 	}
-	var key, value Any
+	var (
+		key   string
+		value Any
+	)
 	for iter.HasNext() {
-		key = unmarshall(iter)
-		iter.AdvancePast(':')
+		iter.AdvancePastAllWhiteSpace()
+		key = unmarshallString(iter)
+		err = iter.AdvancePast(':')
+		if err != nil {
+			panic(err)
+		}
 		value = unmarshall(iter)
 
-		object[key.(string)] = value
+		object[key] = value
 
 		iter.AdvancePastAllWhiteSpace()
 		if iter.Current() == '}' {
 			break
 		}
 		iter.AdvancePast(',')
+		if err != nil {
+			panic(err)
+		}
 	}
 	iter.AdvancePastAllWhiteSpace()
-	iter.AdvancePast('}')
+	err = iter.AdvancePast('}')
+	if err != nil {
+		panic(err)
+	}
 	return object
 }

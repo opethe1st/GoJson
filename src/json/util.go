@@ -27,11 +27,7 @@ func errorMsg(iter *iterator, msg string, msgArgs ...interface{}) string {
 	after := iter.Slice(startAfter, endAfter)
 	// this doesnt work well if the character to underline is a whitespace
 	underlined := string([]byte{iter.Current(), 204, 179})
-	return fmt.Sprintf(`There is an error around
-	%s%s%s
-
-	%s
-	`, before, underlined, after, fmt.Sprintf(msg, msgArgs...))
+	return fmt.Sprintf(`There is an error around %s%s%s. %s`, before, underlined, after, fmt.Sprintf(msg, msgArgs...))
 }
 
 func floatEquals(a, b float64) bool {

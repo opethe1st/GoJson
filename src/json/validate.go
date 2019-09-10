@@ -2,7 +2,7 @@ package json
 
 import (
 	"fmt"
-	"strconv"
+	// "strconv"
 	"unicode"
 )
 
@@ -24,9 +24,7 @@ func Validate(s []byte) error {
 	}
 	iter.AdvancePastAllWhiteSpace()
 	if iter.Cursor() != iter.Len() {
-		// Should I make the constructor for this?
-		// should it have access to the position?
-		return ValidationError{msg: "Extraneous values at the end of the string"}
+		return ValidationError{msg: "Extra characters at the end of the json string"}
 	}
 	return nil
 }
@@ -34,26 +32,26 @@ func Validate(s []byte) error {
 func validate(iter *iterator) error {
 	iter.AdvancePastAllWhiteSpace()
 	switch {
-	case iter.Current() == 'n':
-		return validateKeyword(iter, "null")
-	case iter.Current() == 't':
-		return validateKeyword(iter, "true")
-	case iter.Current() == 'f':
-		return validateKeyword(iter, "false")
-	case isNumber(iter):
-		return validateNumber(iter)
-	case iter.Current() == '"':
-		return validateString(iter)
 	case iter.Current() == '[':
 		return validateArray(iter)
+	case iter.Current() == '"':
+		return validateString(iter)
 	case iter.Current() == '{':
 		return validateObject(iter)
+	case iter.Current() == 'n':
+		return validateLiteral(iter, "null")
+	case iter.Current() == 't':
+		return validateLiteral(iter, "true")
+	case iter.Current() == 'f':
+		return validateLiteral(iter, "false")
+	case isNumber(iter):
+		return validateNumber(iter)
 	default:
 		return ValidationError{msg: fmt.Sprintf("Unknown value at %d", iter.Cursor())}
 	}
 }
 
-func validateKeyword(iter *iterator, literal string) error {
+func validateLiteral(iter *iterator, literal string) error {
 	for _, char := range literal {
 		if rune(iter.Current()) != char {
 			return ValidationError{msg: fmt.Sprintf("Error when trying to unmarshall '%v'", literal)}
@@ -64,26 +62,6 @@ func validateKeyword(iter *iterator, literal string) error {
 }
 
 func validateNumber(iter *iterator) error {
-	start := iter.Cursor()
-	isFloat := moveTillEndOfNumber(iter)
-	if isFloat {
-		_, err := strconv.ParseFloat(string(iter.SliceTillCursor(start)), 64)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	_, err := strconv.ParseInt(string(iter.SliceTillCursor(start)), 10, 64)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func moveTillEndOfNumber(iter *iterator) bool {
-	// this is useful for both, validateNumber and unmarshallNumber
-	isFloat := false
 	if (iter.Current() == '-') || (iter.Current() == '+') {
 		iter.Next()
 	}
@@ -91,14 +69,12 @@ func moveTillEndOfNumber(iter *iterator) bool {
 		iter.Next()
 	}
 	if iter.Current() == '.' {
-		isFloat = true
 		iter.Next()
 	}
 	for unicode.IsDigit(rune(iter.Current())) {
 		iter.Next()
 	}
 	if (iter.Current() == 'e') || (iter.Current() == 'E') {
-		isFloat = true
 		iter.Next()
 	}
 	if (iter.Current() == '-') || (iter.Current() == '+') {
@@ -107,16 +83,18 @@ func moveTillEndOfNumber(iter *iterator) bool {
 	for unicode.IsDigit(rune(iter.Current())) {
 		iter.Next()
 	}
-	return isFloat
+	return nil
 }
 
 func validateString(iter *iterator) error {
 	var err error
-	start := iter.Cursor()
+	// start := iter.Cursor()
 	err = iter.AdvancePast('"')
 	if err != nil {
 		return err
 	}
+
+	// if empty string
 	if iter.Current() == '"' {
 		err = iter.AdvancePast('"')
 		if err != nil {
@@ -139,15 +117,16 @@ func validateString(iter *iterator) error {
 	if err != nil {
 		return err
 	}
-	_, err = strconv.Unquote(string(iter.SliceTillCursor(start)))
-	if err != nil {
-		return err
-	}
+	// _, err = strconv.Unquote(string(iter.SliceTillCursor(start)))
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
 func validateArray(iter *iterator) error {
 	var err error
+
 	err = iter.AdvancePast('[')
 	if err != nil {
 		return err
@@ -170,7 +149,6 @@ func validateArray(iter *iterator) error {
 		if err != nil {
 			return err
 		}
-		iter.AdvancePastAllWhiteSpace()
 	}
 	err = iter.AdvancePast(']')
 	if err != nil {
@@ -180,16 +158,22 @@ func validateArray(iter *iterator) error {
 }
 
 func validateObject(iter *iterator) error {
-	iter.AdvancePast('{')
+	var err error
+
+	err = iter.AdvancePast('{')
+	if err != nil {
+		return err
+	}
 	if iter.Current() == '}' {
 		iter.Next()
 		return nil
 	}
-	var err error
 	for iter.HasNext() {
-		err = validate(iter)
+		// key needs to be a string
+		iter.AdvancePastAllWhiteSpace()
+		err = validateString(iter)
 		if err != nil {
-			return err
+			return ValidationError{msg: errorMsg(iter, "Key needs to be a valid string")}
 		}
 		err = iter.AdvancePast(':')
 		if err != nil {
@@ -209,7 +193,6 @@ func validateObject(iter *iterator) error {
 			return err
 		}
 	}
-	iter.AdvancePastAllWhiteSpace()
 	// this should return err
 	err = iter.AdvancePast('}')
 	if err != nil {
