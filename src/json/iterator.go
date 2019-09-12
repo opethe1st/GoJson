@@ -1,5 +1,9 @@
 package json
 
+import (
+	"fmt"
+)
+
 // this is an iterator that keeps track of the last read position of s in Offset.
 // s should never be changed since then the Offset and len won't make sense anymore
 // after calling s.Len() - s.len should equal len(s)
@@ -61,13 +65,16 @@ func (iter *iterator) AdvancePastAllWhiteSpace() {
 	}
 }
 
-func (iter *iterator) AdvancePast(char byte) {
+func (iter *iterator) AdvancePast(char byte) error {
 	iter.AdvancePastAllWhiteSpace()
 	if iter.Current() == char {
 		iter.Next()
-	} else {
-		panic(errorMsg(iter, "Was expecting %s but got %s instead", string(char), string(iter.Current())))
+		return nil
 	}
+	if iter.Current() == 0 {
+		return ValidationError{msg: fmt.Sprintf("Was expecting %q but we are at the end", char)}
+	}
+	return ValidationError{msg: fmt.Sprintf("Was expecting %q but got %q instead", char, iter.Current())}
 }
 
 func isSpace(ch byte) bool {

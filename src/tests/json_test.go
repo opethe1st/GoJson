@@ -14,11 +14,11 @@ import (
 )
 
 type (
-	Any      = myJson.Any
+	any      = interface{}
 	TestCase struct {
 		name           string
 		input          []byte
-		expectedOutput Any
+		expectedOutput any
 	}
 )
 
@@ -42,11 +42,11 @@ func TestUnmarshall(t *testing.T) {
 				"k6": false,
 				"k	6": null,
 				"k7": 123456
-			}`), map[string]Any{
+			}`), map[string]any{
 				"k1": "v1",
-				"k2": []Any{"v2"},
-				"k3": map[string]Any{
-					"k4": []Any{"v1"},
+				"k2": []any{"v2"},
+				"k3": map[string]any{
+					"k4": []any{"v1"},
 					"k5": "v2",
 				},
 				"k4":   nil,

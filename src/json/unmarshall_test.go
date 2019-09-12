@@ -8,7 +8,7 @@ import (
 type TestCase struct {
 	name           string
 	input          []byte
-	expectedOutput Any
+	expectedOutput any
 }
 
 func TestUnmarshallLiteral(t *testing.T) {
@@ -17,7 +17,7 @@ func TestUnmarshallLiteral(t *testing.T) {
 		name    string
 		input   []byte
 		literal string
-		value   Any
+		value   any
 	}{
 		{"Null", []byte(`null`), `null`, nil},
 		{"True", []byte(`true`), `true`, true},
@@ -111,12 +111,12 @@ func TestUnmarshallNumber(t *testing.T) {
 func TestUnmarshallArray(t *testing.T) {
 	assert := assert.New(t)
 	testCases := []TestCase{
-		{"Empty Array", []byte(`[]`), make([]Any, 0)},
-		{"Array with a single value", []byte(`["value"]`), []Any{"value"}},
-		{"Array with mor than one value", []byte(`["v1", "v2", "v3"]`), []Any{"v1", "v2", "v3"}},
-		{"Nested array of depth 2", []byte(`["v1", ["v2", "v3"]]`), []Any{"v1", []Any{"v2", "v3"}}},
-		{"Nested array of depth 3", []byte(`["v1", ["v2", ["v3"]]]`), []Any{"v1", []Any{"v2", []Any{"v3"}}}},
-		{"Array that has an object", []byte(`["v1", {"v2": "v3"}]`), []Any{"v1", map[string]Any{"v2": "v3"}}},
+		{"Empty Array", []byte(`[]`), make([]any, 0)},
+		{"Array with a single value", []byte(`["value"]`), []any{"value"}},
+		{"Array with mor than one value", []byte(`["v1", "v2", "v3"]`), []any{"v1", "v2", "v3"}},
+		{"Nested array of depth 2", []byte(`["v1", ["v2", "v3"]]`), []any{"v1", []any{"v2", "v3"}}},
+		{"Nested array of depth 3", []byte(`["v1", ["v2", ["v3"]]]`), []any{"v1", []any{"v2", []any{"v3"}}}},
+		{"Array that has an object", []byte(`["v1", {"v2": "v3"}]`), []any{"v1", map[string]any{"v2": "v3"}}},
 	}
 	for _, testcase := range testCases {
 		t.Run(
@@ -133,10 +133,10 @@ func TestUnmarshallArray(t *testing.T) {
 func TestUnmarshallObject(t *testing.T) {
 	assert := assert.New(t)
 	testCases := []TestCase{
-		{"Empty object", []byte(`{}`), make(map[string]Any, 0)},
-		{"Object with one item", []byte(`{"key": "value"}`), map[string]Any{"key": "value"}},
-		{"Object with two items", []byte(`{"k1": "v1", "k2":"v2"}`), map[string]Any{"k1": "v1", "k2": "v2"}},
-		{"Object with array value", []byte(`{"v1": ["v2", "v3"]}`), map[string]Any{"v1": []Any{"v2", "v3"}}},
+		{"Empty object", []byte(`{}`), make(map[string]any, 0)},
+		{"Object with one item", []byte(`{"key": "value"}`), map[string]any{"key": "value"}},
+		{"Object with two items", []byte(`{"k1": "v1", "k2":"v2"}`), map[string]any{"k1": "v1", "k2": "v2"}},
+		{"Object with array value", []byte(`{"v1": ["v2", "v3"]}`), map[string]any{"v1": []any{"v2", "v3"}}},
 	}
 	for _, testcase := range testCases {
 		t.Run(

@@ -9,15 +9,12 @@ import (
 	"unicode"
 )
 
-// Any is an alias for interface{}
-type Any = interface{}
-
 // Unmarshall is used load an object from a string
-func Unmarshall(s []byte) Any {
+func Unmarshall(s []byte) any {
 	return unmarshall(&iterator{s: s})
 }
 
-func unmarshall(iter *iterator) Any {
+func unmarshall(iter *iterator) any {
 	iter.AdvancePastAllWhiteSpace()
 	switch {
 	case iter.Current() == 'n':
@@ -40,7 +37,7 @@ func unmarshall(iter *iterator) Any {
 	}
 }
 
-func unmarshallLiteral(iter *iterator, literal string, value Any) Any {
+func unmarshallLiteral(iter *iterator, literal string, value any) any {
 	for _, val := range literal {
 		if rune(iter.Current()) != val {
 			panic(errorMsg(iter, "There was an error while reading in %s", literal))
@@ -52,13 +49,13 @@ func unmarshallLiteral(iter *iterator, literal string, value Any) Any {
 
 func isNumber(iter *iterator) bool {
 	switch iter.Current() {
-	case '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '0':
+	case '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '0', '+':
 		return true
 	}
 	return false
 }
 
-func unmarshallNumber(iter *iterator) Any {
+func unmarshallNumber(iter *iterator) any {
 	start := iter.Cursor()
 	isFloat := false
 	if (iter.Current() == '-') || (iter.Current() == '+') {
@@ -126,14 +123,19 @@ func unmarshallString(iter *iterator) (str string) {
 	return
 }
 
-func unmarshallArray(iter *iterator) []Any {
-	array := make([]Any, 0)
-	iter.AdvancePast('[')
+func unmarshallArray(iter *iterator) []any {
+	var err error
+	array := make([]any, 0)
+	err = iter.AdvancePast('[')
+	if err != nil {
+		panic(err)
+	}
+
 	if iter.Current() == ']' {
 		iter.Next()
 		return array
 	}
-	var item Any
+	var item any
 	for iter.HasNext() {
 		item = unmarshall(iter)
 		array = append(array, item)
@@ -142,34 +144,51 @@ func unmarshallArray(iter *iterator) []Any {
 			break
 		}
 		iter.AdvancePast(',')
-		iter.AdvancePastAllWhiteSpace()
 	}
 	iter.AdvancePast(']')
 	return array
 }
 
-func unmarshallObject(iter *iterator) map[string]Any {
-	object := make(map[string]Any, 0)
-	iter.AdvancePast('{')
+func unmarshallObject(iter *iterator) map[string]any {
+	var err error
+
+	object := make(map[string]any, 0)
+	err = iter.AdvancePast('{')
+	if err != nil {
+		panic(err)
+	}
 	if iter.Current() == '}' {
 		iter.Next()
 		return object
 	}
-	var key, value Any
+	var (
+		key   string
+		value any
+	)
 	for iter.HasNext() {
-		key = unmarshall(iter)
-		iter.AdvancePast(':')
+		iter.AdvancePastAllWhiteSpace()
+		key = unmarshallString(iter)
+		err = iter.AdvancePast(':')
+		if err != nil {
+			panic(err)
+		}
 		value = unmarshall(iter)
 
-		object[key.(string)] = value
+		object[key] = value
 
 		iter.AdvancePastAllWhiteSpace()
 		if iter.Current() == '}' {
 			break
 		}
 		iter.AdvancePast(',')
+		if err != nil {
+			panic(err)
+		}
 	}
 	iter.AdvancePastAllWhiteSpace()
-	iter.AdvancePast('}')
+	err = iter.AdvancePast('}')
+	if err != nil {
+		panic(err)
+	}
 	return object
 }
