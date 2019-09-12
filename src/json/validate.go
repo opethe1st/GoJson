@@ -2,7 +2,7 @@ package json
 
 import (
 	"fmt"
-	// "strconv"
+	"strconv"
 	"unicode"
 )
 
@@ -74,21 +74,29 @@ func validateNumber(iter *iterator) error {
 	for unicode.IsDigit(rune(iter.Current())) {
 		iter.Next()
 	}
+
+	hasExponent := false
 	if (iter.Current() == 'e') || (iter.Current() == 'E') {
+		hasExponent = true
 		iter.Next()
 	}
 	if (iter.Current() == '-') || (iter.Current() == '+') {
 		iter.Next()
 	}
+	beforeExponentNumber := iter.Current()
 	for unicode.IsDigit(rune(iter.Current())) {
 		iter.Next()
+	}
+	// if we have encountered e/E then make sure there is at least one digit after e/E
+	if hasExponent && (iter.Current()-beforeExponentNumber) == 0 {
+		return ValidationError{msg: "There needs to be at least one digit after e/E when parsing a number"}
 	}
 	return nil
 }
 
 func validateString(iter *iterator) error {
 	var err error
-	// start := iter.Cursor()
+	start := iter.Cursor()
 	err = iter.AdvancePast('"')
 	if err != nil {
 		return err
@@ -117,10 +125,10 @@ func validateString(iter *iterator) error {
 	if err != nil {
 		return err
 	}
-	// _, err = strconv.Unquote(string(iter.SliceTillCursor(start)))
-	// if err != nil {
-	// 	return err
-	// }
+	_, err = strconv.Unquote(string(iter.SliceTillCursor(start)))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
