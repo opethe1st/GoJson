@@ -62,14 +62,26 @@ func validateLiteral(iter *iterator, literal string) error {
 }
 
 func validateNumber(iter *iterator) error {
+	// maybe this should be an explicit state machine
+	hasSign := false
 	if (iter.Current() == '-') || (iter.Current() == '+') {
 		iter.Next()
+		hasSign = true
+	}
+	// there needs to be a digit after - or +
+	if hasSign && !unicode.IsDigit(rune(iter.Current())) {
+		return ValidationError{msg: "There needs to be a digit after - or +"}
 	}
 	for unicode.IsDigit(rune(iter.Current())) {
 		iter.Next()
 	}
+	hasDot := false
 	if iter.Current() == '.' {
 		iter.Next()
+		hasDot = true
+	}
+	if hasDot && !unicode.IsDigit(rune(iter.Current())) {
+		return ValidationError{msg: "There needs to be a digit after . "}
 	}
 	for unicode.IsDigit(rune(iter.Current())) {
 		iter.Next()
